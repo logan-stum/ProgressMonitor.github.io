@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  base: 'https://logan-stum.github.io/ProgressMonitor.github.io/',
   plugins: [
     react(),
     VitePWA({
