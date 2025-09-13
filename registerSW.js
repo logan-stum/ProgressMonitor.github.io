@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('https://logan-stum.github.io/ProgressMonitor.github.io/sw.js', { scope: 'https://logan-stum.github.io/ProgressMonitor.github.io/' })})}
