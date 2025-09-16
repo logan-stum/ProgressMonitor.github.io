@@ -48,9 +48,7 @@ function App() {
   const [activeSetIndex, setActiveSetIndex] = useState(0);
   const [activeChartIndex, setActiveChartIndex] = useState(0);
   const [newValue, setNewValue] = useState("");
-  const [newDate, setNewDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+  const [newDate, setNewDate] = useState(new Date().toISOString().split("T")[0]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [hoveredPoint, setHoveredPoint] = useState(null);
 
@@ -105,8 +103,7 @@ function App() {
   };
 
   const deleteMasterSet = (index) => {
-    if (!window.confirm(`Delete Master Set "${masterSets[index].name}"?`))
-      return;
+    if (!window.confirm(`Delete Master Set "${masterSets[index].name}"?`)) return;
     const updated = masterSets.filter((_, idx) => idx !== index);
     setMasterSets(
       updated.length
@@ -120,7 +117,9 @@ function App() {
                   startValue: 20,
                   startDate: new Date().toISOString().split("T")[0],
                   goalValue: 80,
-                  goalDate: new Date(new Date().setMonth(new Date().getMonth() + 3))
+                  goalDate: new Date(
+                    new Date().setMonth(new Date().getMonth() + 3)
+                  )
                     .toISOString()
                     .split("T")[0],
                   data: [],
@@ -275,7 +274,7 @@ function App() {
 
   const chartOptions = {
     responsive: true,
-    maintainAspectRatio: false,
+    maintainAspectRatio: false, // 🔹 allow stretching
     plugins: { legend: { position: "top" } },
     scales: {
       x: { type: "time", time: { unit: "day", tooltipFormat: "yyyy-MM-dd" } },
@@ -304,238 +303,118 @@ function App() {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        height: "100vh",
-        width: "100vw",
-        background: "#222",
-        color: "white",
-      }}
-    >
+    <div style={{ display: "flex", minHeight: "100vh", background: "#222", color: "white" }}>
       {/* Sidebar */}
-      <div
-        style={{
-          width: sidebarOpen ? 250 : 50,
-          background: "#111",
-          transition: "width 0.3s",
-          padding: 10,
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          style={{
-            marginBottom: 10,
-            background: "transparent",
-            color: "white",
-            border: "none",
-            cursor: "pointer",
-            fontSize: 24,
-          }}
-        >
-          ☰
-        </button>
+      <div style={{
+        width: sidebarOpen ? 250 : 50,
+        background: "#111",
+        transition: "width 0.3s",
+        padding: 10,
+        display: "flex",
+        flexDirection: "column"
+      }}>
+        <button onClick={() => setSidebarOpen(!sidebarOpen)}
+          style={{ marginBottom: 10, background: "transparent", color: "white", border: "none", cursor: "pointer", fontSize: 24 }}>☰</button>
 
-        {sidebarOpen &&
-          masterSets.map((set, setIdx) => (
-            <div key={setIdx} style={{ marginBottom: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span
-                  onClick={() => {
-                    setActiveSetIndex(setIdx);
-                    setActiveChartIndex(0);
-                  }}
-                  style={{
-                    cursor: "pointer",
-                    fontWeight: activeSetIndex === setIdx ? "bold" : "normal",
-                  }}
-                >
-                  {set.name}
-                </span>
-                <div>
-                  <button onClick={() => renameMasterSet(setIdx)}>✎</button>
-                  <button onClick={() => deleteMasterSet(setIdx)}>🗑️</button>
-                </div>
-              </div>
-              <div style={{ paddingLeft: 15, marginTop: 5 }}>
-                {set.charts.map((chart, chartIdx) => (
-                  <div
-                    key={chartIdx}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      marginBottom: 3,
-                    }}
-                  >
-                    <span
-                      onClick={() => {
-                        setActiveSetIndex(setIdx);
-                        setActiveChartIndex(chartIdx);
-                      }}
-                      style={{
-                        cursor: "pointer",
-                        textDecoration:
-                          activeSetIndex === setIdx &&
-                          activeChartIndex === chartIdx
-                            ? "underline"
-                            : "none",
-                      }}
-                    >
-                      {chart.name}
-                    </span>
-                    <div>
-                      <button onClick={() => renameChart(setIdx, chartIdx)}>
-                        ✎
-                      </button>
-                      <button onClick={() => deleteChart(setIdx, chartIdx)}>
-                        🗑️
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                <button
-                  onClick={() => addChartToSet(setIdx)}
-                  style={{ marginTop: 3, fontSize: 12 }}
-                >
-                  + Add Chart
-                </button>
+        {sidebarOpen && masterSets.map((set, setIdx) => (
+          <div key={setIdx} style={{ marginBottom: 10 }}>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <span onClick={() => { setActiveSetIndex(setIdx); setActiveChartIndex(0); }}
+                style={{ cursor: "pointer", fontWeight: activeSetIndex === setIdx ? "bold" : "normal" }}>
+                {set.name}
+              </span>
+              <div>
+                <button onClick={() => renameMasterSet(setIdx)}>✎</button>
+                <button onClick={() => deleteMasterSet(setIdx)}>🗑️</button>
               </div>
             </div>
-          ))}
-        {sidebarOpen && (
-          <button onClick={addMasterSet} style={{ marginTop: "auto" }}>
-            + Add Master Set
-          </button>
-        )}
+            <div style={{ paddingLeft: 15, marginTop: 5 }}>
+              {set.charts.map((chart, chartIdx) => (
+                <div key={chartIdx} style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+                  <span onClick={() => { setActiveSetIndex(setIdx); setActiveChartIndex(chartIdx); }}
+                    style={{ cursor: "pointer", textDecoration: activeSetIndex === setIdx && activeChartIndex === chartIdx ? "underline" : "none" }}>
+                    {chart.name}
+                  </span>
+                  <div>
+                    <button onClick={() => renameChart(setIdx, chartIdx)}>✎</button>
+                    <button onClick={() => deleteChart(setIdx, chartIdx)}>🗑️</button>
+                  </div>
+                </div>
+              ))}
+              <button onClick={() => addChartToSet(setIdx)} style={{ marginTop: 3, fontSize: 12 }}>+ Add Chart</button>
+            </div>
+          </div>
+        ))}
+        {sidebarOpen && <button onClick={addMasterSet} style={{ marginTop: "auto" }}>+ Add Master Set</button>}
       </div>
 
       {/* Main content */}
-      <div
-        style={{
-          flex: 1,
-          padding: 20,
-          display: "flex",
-          flexDirection: "column",
-          minHeight: 0,
-        }}
-      >
+      <div style={{ flex: 1, padding: 20 }}>
         <h1 style={{ display: "flex", alignItems: "center" }}>
-          <img
-            src="https://img.icons8.com/color/48/combo-chart--v1.png"
-            alt="logo"
-            style={{ marginRight: 10 }}
-          />
+          <img src="https://img.icons8.com/color/48/combo-chart--v1.png" alt="logo" style={{ marginRight: 10 }} />
           Progress Monitor
         </h1>
 
         {/* Start/Goal inputs */}
         <div style={{ marginBottom: 10 }}>
-          <label>
-            Start Value:
-            <input
-              type="number"
-              value={activeChart.startValue}
-              onChange={(e) => {
-                const updated = [...masterSets];
-                updated[activeSetIndex].charts[activeChartIndex].startValue =
-                  Number(e.target.value);
-                setMasterSets(updated);
-              }}
-              style={{ margin: "0 5px" }}
-            />
+          <label>Start Value:
+            <input type="number" value={activeChart.startValue} onChange={e => {
+              const updated = [...masterSets];
+              updated[activeSetIndex].charts[activeChartIndex].startValue = Number(e.target.value);
+              setMasterSets(updated);
+            }} style={{ margin: "0 5px" }} />
           </label>
-          <label>
-            Start Date:
-            <input
-              type="date"
-              value={activeChart.startDate}
-              onChange={(e) => {
-                const updated = [...masterSets];
-                updated[activeSetIndex].charts[activeChartIndex].startDate =
-                  e.target.value;
-                setMasterSets(updated);
-              }}
-              style={{ margin: "0 5px" }}
-            />
+          <label>Start Date:
+            <input type="date" value={activeChart.startDate} onChange={e => {
+              const updated = [...masterSets];
+              updated[activeSetIndex].charts[activeChartIndex].startDate = e.target.value;
+              setMasterSets(updated);
+            }} style={{ margin: "0 5px" }} />
           </label>
         </div>
         <div style={{ marginBottom: 10 }}>
-          <label>
-            Goal Value:
-            <input
-              type="number"
-              value={activeChart.goalValue}
-              onChange={(e) => {
-                const updated = [...masterSets];
-                updated[activeSetIndex].charts[activeChartIndex].goalValue =
-                  Number(e.target.value);
-                setMasterSets(updated);
-              }}
-              style={{ margin: "0 5px" }}
-            />
+          <label>Goal Value:
+            <input type="number" value={activeChart.goalValue} onChange={e => {
+              const updated = [...masterSets];
+              updated[activeSetIndex].charts[activeChartIndex].goalValue = Number(e.target.value);
+              setMasterSets(updated);
+            }} style={{ margin: "0 5px" }} />
           </label>
-          <label>
-            Goal Date:
-            <input
-              type="date"
-              value={activeChart.goalDate}
-              onChange={(e) => {
-                const updated = [...masterSets];
-                updated[activeSetIndex].charts[activeChartIndex].goalDate =
-                  e.target.value;
-                setMasterSets(updated);
-              }}
-              style={{ margin: "0 5px" }}
-            />
+          <label>Goal Date:
+            <input type="date" value={activeChart.goalDate} onChange={e => {
+              const updated = [...masterSets];
+              updated[activeSetIndex].charts[activeChartIndex].goalDate = e.target.value;
+              setMasterSets(updated);
+            }} style={{ margin: "0 5px" }} />
           </label>
         </div>
 
         {/* Add data point */}
         <div style={{ marginBottom: 10 }}>
-          <label>
-            Value:
-            <input
-              type="number"
-              value={newValue}
-              onChange={(e) => setNewValue(e.target.value)}
-              style={{ margin: "0 5px" }}
-            />
+          <label>Value:
+            <input type="number" value={newValue} onChange={e => setNewValue(e.target.value)} style={{ margin: "0 5px" }} />
           </label>
-          <label>
-            Date:
-            <input
-              type="date"
-              value={newDate}
-              onChange={(e) => setNewDate(e.target.value)}
-              style={{ margin: "0 5px" }}
-            />
+          <label>Date:
+            <input type="date" value={newDate} onChange={e => setNewDate(e.target.value)} style={{ margin: "0 5px" }} />
           </label>
-          <button onClick={addPoint} style={{ marginLeft: 5 }}>
-            + Add
-          </button>
+          <button onClick={addPoint} style={{ marginLeft: 5 }}>+ Add</button>
         </div>
 
         {/* JSON import/export */}
         <div style={{ marginBottom: 10 }}>
-          <button onClick={exportJSON} style={{ marginRight: 10 }}>
-            Export JSON
-          </button>
+          <button onClick={exportJSON} style={{ marginRight: 10 }}>Export JSON</button>
           <input type="file" accept=".json" onChange={importJSON} />
         </div>
 
         {/* Chart with hover delete */}
-        <div
-          style={{
-            flex: 1,
-            position: "relative",
-            background: "#111",
-            padding: 20,
-            borderRadius: 8,
-            minHeight: 0,
-          }}
-        >
+        <div style={{
+          position: "relative",
+          background: "#111",
+          padding: 20,
+          borderRadius: 8,
+          width: "100%",
+          height: "60vh"  // 🔹 chart fills 60% of viewport height
+        }}>
           <Line ref={chartRef} data={chartData} options={chartOptions} />
           {hoveredPoint && (
             <button
@@ -563,19 +442,13 @@ function App() {
         <div style={{ marginTop: 10 }}>
           <textarea
             value={activeChart.notes}
-            onChange={(e) => {
+            onChange={e => {
               const updated = [...masterSets];
-              updated[activeSetIndex].charts[activeChartIndex].notes =
-                e.target.value;
+              updated[activeSetIndex].charts[activeChartIndex].notes = e.target.value;
               setMasterSets(updated);
             }}
             placeholder="Add notes..."
-            style={{
-              width: "100%",
-              minHeight: 60,
-              resize: "vertical",
-              padding: 8,
-            }}
+            style={{ width: "100%", minHeight: 60, resize: "vertical", padding: 8 }}
           />
         </div>
       </div>
