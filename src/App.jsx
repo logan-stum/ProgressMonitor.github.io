@@ -133,7 +133,7 @@ function App() {
         Progress Monitor
       </h1>
 
-      {/* Chart area - flex grow */}
+      {/* Chart area */}
       <div
         style={{
           flex: 1,
@@ -145,14 +145,14 @@ function App() {
         <div
           style={{
             background: "#111",
-            flex: 1,
             borderRadius: 8,
             padding: 10,
-            width: "100%",
-            maxWidth: "100%",
+            width: "100%",        // fill horizontally
+            maxWidth: "100%",     // never exceed page
+            height: "60vh",       // 🔑 cap chart height to 60% of viewport
           }}
         >
-          <Line data={chartData} options={chartOptions} />
+          <Line data={chartData} options={{ ...chartOptions, maintainAspectRatio: false }} />
         </div>
 
         {/* Inputs below */}
@@ -162,9 +162,7 @@ function App() {
             <input
               type="number"
               value={newPoint.value}
-              onChange={(e) =>
-                setNewPoint({ ...newPoint, value: e.target.value })
-              }
+              onChange={(e) => setNewPoint({ ...newPoint, value: e.target.value })}
               style={{ margin: "0 10px" }}
             />
           </label>
@@ -173,9 +171,7 @@ function App() {
             <input
               type="date"
               value={newPoint.date}
-              onChange={(e) =>
-                setNewPoint({ ...newPoint, date: e.target.value })
-              }
+              onChange={(e) => setNewPoint({ ...newPoint, date: e.target.value })}
               style={{ margin: "0 10px" }}
             />
           </label>
@@ -186,8 +182,7 @@ function App() {
           value={activeChart.notes}
           onChange={(e) => {
             const updated = [...dataSets];
-            updated[activeSetIndex].charts[activeChartIndex].notes =
-              e.target.value;
+            updated[activeSetIndex].charts[activeChartIndex].notes = e.target.value;
             setDataSets(updated);
           }}
           placeholder="Add notes here..."
