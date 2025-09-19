@@ -26,8 +26,6 @@ ChartJS.register(
 
 function App() {
   const chartRef = useRef(null);
-  const sidebarRef = useRef(null);
-
   const [masterSets, setMasterSets] = useState([
     {
       name: "Set 1",
@@ -50,7 +48,9 @@ function App() {
   const [activeSetIndex, setActiveSetIndex] = useState(0);
   const [activeChartIndex, setActiveChartIndex] = useState(0);
   const [newValue, setNewValue] = useState("");
-  const [newDate, setNewDate] = useState(new Date().toISOString().split("T")[0]);
+  const [newDate, setNewDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [hoveredPoint, setHoveredPoint] = useState(null);
 
@@ -73,7 +73,7 @@ function App() {
   const activeSet = masterSets[activeSetIndex];
   const activeChart = activeSet.charts[activeChartIndex];
 
-  // Master Set functions
+  // --- Master Set functions ---
   const addMasterSet = () => {
     const newSet = {
       name: `Set ${masterSets.length + 1}`,
@@ -91,16 +91,9 @@ function App() {
         },
       ],
     };
-    setMasterSets((prev) => [...prev, newSet]);
+    setMasterSets([...masterSets, newSet]);
     setActiveSetIndex(masterSets.length);
     setActiveChartIndex(0);
-
-    // Scroll sidebar to bottom after adding
-    setTimeout(() => {
-      if (sidebarRef.current) {
-        sidebarRef.current.scrollTop = sidebarRef.current.scrollHeight;
-      }
-    }, 50);
   };
 
   const renameMasterSet = (index) => {
@@ -112,7 +105,8 @@ function App() {
   };
 
   const deleteMasterSet = (index) => {
-    if (!window.confirm(`Delete Master Set "${masterSets[index].name}"?`)) return;
+    if (!window.confirm(`Delete Master Set "${masterSets[index].name}"?`))
+      return;
     const updated = masterSets.filter((_, idx) => idx !== index);
     setMasterSets(
       updated.length
@@ -140,6 +134,7 @@ function App() {
     setActiveChartIndex(0);
   };
 
+  // --- Chart functions ---
   const addChartToSet = (setIndex) => {
     const updated = [...masterSets];
     const newChart = {
@@ -171,9 +166,12 @@ function App() {
   };
 
   const deleteChart = (setIndex, chartIndex) => {
-    if (!window.confirm(
-      `Delete Chart "${masterSets[setIndex].charts[chartIndex].name}"?`
-    )) return;
+    if (
+      !window.confirm(
+        `Delete Chart "${masterSets[setIndex].charts[chartIndex].name}"?`
+      )
+    )
+      return;
     const updated = [...masterSets];
     updated[setIndex].charts.splice(chartIndex, 1);
     if (!updated[setIndex].charts.length) {
@@ -193,6 +191,7 @@ function App() {
     setActiveChartIndex(0);
   };
 
+  // --- Data point functions ---
   const addPoint = () => {
     if (!newValue || !newDate) return;
     const updated = [...masterSets];
@@ -212,8 +211,11 @@ function App() {
     setHoveredPoint(null);
   };
 
+  // --- JSON import/export ---
   const exportJSON = () => {
-    const blob = new Blob([JSON.stringify(masterSets, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify(masterSets, null, 2)], {
+      type: "application/json",
+    });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -229,7 +231,10 @@ function App() {
     reader.onload = (event) => {
       try {
         const data = JSON.parse(event.target.result);
-        if (Array.isArray(data) && data.every((set) => set.name && Array.isArray(set.charts))) {
+        if (
+          Array.isArray(data) &&
+          data.every((set) => set.name && Array.isArray(set.charts))
+        ) {
           setMasterSets(data);
           setActiveSetIndex(0);
           setActiveChartIndex(0);
@@ -241,6 +246,7 @@ function App() {
     reader.readAsText(file);
   };
 
+  // --- Chart.js data ---
   const chartData = {
     datasets: [
       {
@@ -285,13 +291,27 @@ function App() {
     onHover: (event, elements) => {
       if (elements.length) {
         const el = elements[0];
-        setHoveredPoint({ x: el.element.x, y: el.element.y, index: el.index });
-      } else setHoveredPoint(null);
+        setHoveredPoint({
+          x: el.element.x,
+          y: el.element.y,
+          index: el.index,
+        });
+      } else {
+        setHoveredPoint(null);
+      }
     },
   };
 
   return (
-    <div style={{ display: "flex", height: "100vh", width: "100vw", background: "#222", color: "white" }}>
+    <div
+      style={{
+        display: "flex",
+        height: "100vh",
+        width: "100vw",
+        background: "#222",
+        color: "white",
+      }}
+    >
       {/* Sidebar */}
       <div
         style={{
@@ -318,18 +338,23 @@ function App() {
           ☰
         </button>
 
-        {/* Scrollable list of sets */}
+        {/* Scrollable sets */}
         {sidebarOpen && (
           <div
             style={{
-              flex: 1,               // Take remaining space between top button and footer
-              overflowY: "auto",     // Scroll when content exceeds height
+              flex: 1,
+              overflowY: "auto",
               padding: 10,
             }}
           >
             {masterSets.map((set, setIdx) => (
               <div key={setIdx} style={{ marginBottom: 10 }}>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                  }}
+                >
                   <span
                     onClick={() => {
                       setActiveSetIndex(setIdx);
@@ -374,8 +399,12 @@ function App() {
                         {chart.name}
                       </span>
                       <div>
-                        <button onClick={() => renameChart(setIdx, chartIdx)}>✎</button>
-                        <button onClick={() => deleteChart(setIdx, chartIdx)}>🗑️</button>
+                        <button onClick={() => renameChart(setIdx, chartIdx)}>
+                          ✎
+                        </button>
+                        <button onClick={() => deleteChart(setIdx, chartIdx)}>
+                          🗑️
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -391,7 +420,7 @@ function App() {
           </div>
         )}
 
-        {/* Fixed footer */}
+        {/* Footer */}
         {sidebarOpen && (
           <div style={{ padding: 10, borderTop: "1px solid #333" }}>
             <button onClick={addMasterSet}>+ Add Master Set</button>
@@ -399,11 +428,175 @@ function App() {
         )}
       </div>
 
-
       {/* Main content */}
-      <div style={{ flex: 1, padding: 20, display: "flex", flexDirection: "column", minHeight: 0 }}>
-        {/* Chart inputs, data points, notes, and Line chart */}
-        {/* Keep the previous main content code here */}
+      <div
+        style={{
+          flex: 1,
+          padding: 20,
+          display: "flex",
+          flexDirection: "column",
+          minHeight: 0,
+        }}
+      >
+        <h1 style={{ display: "flex", alignItems: "center" }}>
+          <img
+            src="https://img.icons8.com/color/48/combo-chart--v1.png"
+            alt="logo"
+            style={{ marginRight: 10 }}
+          />
+          Progress Monitor
+        </h1>
+
+        {/* Start/Goal inputs */}
+        <div style={{ marginBottom: 10 }}>
+          <label>
+            Start Value:
+            <input
+              type="number"
+              value={activeChart.startValue}
+              onChange={(e) => {
+                const updated = [...masterSets];
+                updated[activeSetIndex].charts[activeChartIndex].startValue =
+                  Number(e.target.value);
+                setMasterSets(updated);
+              }}
+              style={{ margin: "0 5px" }}
+            />
+          </label>
+          <label>
+            Start Date:
+            <input
+              type="date"
+              defaultValue={activeChart.startDate}
+              onBlur={(e) => {
+                const val = e.target.value;
+                if (!val) return;
+                const updated = [...masterSets];
+                updated[activeSetIndex].charts[activeChartIndex].startDate = val;
+                setMasterSets(updated);
+              }}
+              style={{ margin: "0 5px" }}
+            />
+          </label>
+        </div>
+        <div style={{ marginBottom: 10 }}>
+          <label>
+            Goal Value:
+            <input
+              type="number"
+              value={activeChart.goalValue}
+              onChange={(e) => {
+                const updated = [...masterSets];
+                updated[activeSetIndex].charts[activeChartIndex].goalValue =
+                  Number(e.target.value);
+                setMasterSets(updated);
+              }}
+              style={{ margin: "0 5px" }}
+            />
+          </label>
+          <label>
+            Goal Date:
+            <input
+              type="date"
+              defaultValue={activeChart.goalDate}
+              onBlur={(e) => {
+                const val = e.target.value;
+                if (!val) return;
+                const updated = [...masterSets];
+                updated[activeSetIndex].charts[activeChartIndex].goalDate = val;
+                setMasterSets(updated);
+              }}
+              style={{ margin: "0 5px" }}
+            />
+          </label>
+        </div>
+
+        {/* Add data point */}
+        <div style={{ marginBottom: 10 }}>
+          <label>
+            Value:
+            <input
+              type="number"
+              value={newValue}
+              onChange={(e) => setNewValue(e.target.value)}
+              style={{ margin: "0 5px" }}
+            />
+          </label>
+          <label>
+            Date:
+            <input
+              type="date"
+              value={newDate}
+              onChange={(e) => setNewDate(e.target.value)}
+              style={{ margin: "0 5px" }}
+            />
+          </label>
+          <button onClick={addPoint} style={{ marginLeft: 5 }}>
+            + Add
+          </button>
+        </div>
+
+        {/* JSON import/export */}
+        <div style={{ marginBottom: 10 }}>
+          <button onClick={exportJSON} style={{ marginRight: 10 }}>
+            Export JSON
+          </button>
+          <input type="file" accept=".json" onChange={importJSON} />
+        </div>
+
+        {/* Chart */}
+        <div
+          style={{
+            flex: 1,
+            position: "relative",
+            background: "#111",
+            padding: 20,
+            borderRadius: 8,
+            minHeight: 0,
+          }}
+        >
+          <Line ref={chartRef} data={chartData} options={chartOptions} />
+          {hoveredPoint && (
+            <button
+              onClick={() => removePoint(hoveredPoint.index)}
+              style={{
+                position: "absolute",
+                left: hoveredPoint.x,
+                top: hoveredPoint.y - 20,
+                transform: "translate(-50%, -100%)",
+                background: "red",
+                color: "white",
+                border: "none",
+                borderRadius: 4,
+                padding: "2px 6px",
+                cursor: "pointer",
+                fontSize: 12,
+              }}
+            >
+              ✖
+            </button>
+          )}
+        </div>
+
+        {/* Notes */}
+        <div style={{ marginTop: 10 }}>
+          <textarea
+            value={activeChart.notes}
+            onChange={(e) => {
+              const updated = [...masterSets];
+              updated[activeSetIndex].charts[activeChartIndex].notes =
+                e.target.value;
+              setMasterSets(updated);
+            }}
+            placeholder="Add notes..."
+            style={{
+              width: "100%",
+              minHeight: 60,
+              resize: "vertical",
+              padding: 8,
+            }}
+          />
+        </div>
       </div>
     </div>
   );
