@@ -322,6 +322,8 @@ function App() {
           padding: 10,
           display: "flex",
           flexDirection: "column",
+          height: "100vh",        // ensure sidebar takes full height
+          overflowY: "auto",      // allow scrolling if items overflow
         }}
       >
         <button
