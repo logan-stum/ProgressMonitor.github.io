@@ -291,19 +291,22 @@ function App() {
       {/* Sidebar */}
       <div style={{ width: sidebarOpen ? 250 : 50, background: "#111", transition: "width 0.3s", display: "flex", flexDirection: "column", height: "100vh" }}>
         {/* Top toggle */}
-        <div style={{ padding: 10 }}>
+        <div style={{ padding: 10, flex: "0 0 auto" }}>
           <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: "transparent", color: "white", border: "none", cursor: "pointer", fontSize: 24 }}>
             ☰
           </button>
         </div>
 
         {/* Scrollable sets */}
-        <div style={{ flex: 1, overflowY: "auto", padding: 10, display: "flex", flexDirection: "column", minHeight: 0 }}>
+        <div style={{ flex: "1 1 auto", overflowY: "auto", minHeight: 0, padding: 10, display: "flex", flexDirection: "column" }}>
           {sidebarOpen &&
             masterSets.map((set, setIdx) => (
               <div key={setIdx} style={{ marginBottom: 10 }}>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span onClick={() => { setActiveSetIndex(setIdx); setActiveChartIndex(0); }} style={{ cursor: "pointer", fontWeight: activeSetIndex === setIdx ? "bold" : "normal" }}>
+                  <span
+                    onClick={() => { setActiveSetIndex(setIdx); setActiveChartIndex(0); }}
+                    style={{ cursor: "pointer", fontWeight: activeSetIndex === setIdx ? "bold" : "normal" }}
+                  >
                     {set.name}
                   </span>
                   <div>
@@ -314,7 +317,10 @@ function App() {
                 <div style={{ paddingLeft: 15, marginTop: 5 }}>
                   {set.charts.map((chart, chartIdx) => (
                     <div key={chartIdx} style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                      <span onClick={() => { setActiveSetIndex(setIdx); setActiveChartIndex(chartIdx); }} style={{ cursor: "pointer", textDecoration: activeSetIndex === setIdx && activeChartIndex === chartIdx ? "underline" : "none" }}>
+                      <span
+                        onClick={() => { setActiveSetIndex(setIdx); setActiveChartIndex(chartIdx); }}
+                        style={{ cursor: "pointer", textDecoration: activeSetIndex === setIdx && activeChartIndex === chartIdx ? "underline" : "none" }}
+                      >
                         {chart.name}
                       </span>
                       <div>
@@ -333,7 +339,7 @@ function App() {
 
         {/* Fixed footer */}
         {sidebarOpen && (
-          <div style={{ padding: 10, borderTop: "1px solid #333" }}>
+          <div style={{ padding: 10, borderTop: "1px solid #333", flex: "0 0 auto" }}>
             <button onClick={addMasterSet}>+ Add Master Set</button>
           </div>
         )}
@@ -359,8 +365,7 @@ function App() {
           <label>
             Start Date:
             <input type="date" defaultValue={activeChart.startDate} onBlur={(e) => {
-              const val = e.target.value;
-              if (!val) return;
+              const val = e.target.value; if (!val) return;
               const updated = [...masterSets];
               updated[activeSetIndex].charts[activeChartIndex].startDate = val;
               setMasterSets(updated);
@@ -380,8 +385,7 @@ function App() {
           <label>
             Goal Date:
             <input type="date" defaultValue={activeChart.goalDate} onBlur={(e) => {
-              const val = e.target.value;
-              if (!val) return;
+              const val = e.target.value; if (!val) return;
               const updated = [...masterSets];
               updated[activeSetIndex].charts[activeChartIndex].goalDate = val;
               setMasterSets(updated);
