@@ -247,7 +247,6 @@ function App() {
     reader.readAsText(file);
   };
 
-  // --- Chart.js data ---
   const chartData = {
     datasets: [
       {
@@ -296,9 +295,7 @@ function App() {
           y: el.element.y,
           index: el.index,
         });
-      } else {
-        setHoveredPoint(null);
-      }
+      } else setHoveredPoint(null);
     },
   };
 
@@ -352,8 +349,100 @@ function App() {
           Progress Monitor
         </h1>
 
-        {/* Chart inputs */}
-        {/* ... rest of your inputs and chart rendering remain unchanged ... */}
+        {/* Start/Goal inputs */}
+        <div style={{ marginBottom: 10 }}>
+          <label>
+            Start Value:
+            <input type="number" value={activeChart.startValue} onChange={(e) => {
+              const updated = [...masterSets];
+              updated[activeSetIndex].charts[activeChartIndex].startValue = Number(e.target.value);
+              setMasterSets(updated);
+            }} style={{ margin: "0 5px" }} />
+          </label>
+          <label>
+            Start Date:
+            <input type="date" defaultValue={activeChart.startDate} onBlur={(e) => {
+              const val = e.target.value;
+              if (!val) return;
+              const updated = [...masterSets];
+              updated[activeSetIndex].charts[activeChartIndex].startDate = val;
+              setMasterSets(updated);
+            }} style={{ margin: "0 5px" }} />
+          </label>
+        </div>
+        <div style={{ marginBottom: 10 }}>
+          <label>
+            Goal Value:
+            <input type="number" value={activeChart.goalValue} onChange={(e) => {
+              const updated = [...masterSets];
+              updated[activeSetIndex].charts[activeChartIndex].goalValue = Number(e.target.value);
+              setMasterSets(updated);
+            }} style={{ margin: "0 5px" }} />
+          </label>
+          <label>
+            Goal Date:
+            <input type="date" defaultValue={activeChart.goalDate} onBlur={(e) => {
+              const val = e.target.value;
+              if (!val) return;
+              const updated = [...masterSets];
+              updated[activeSetIndex].charts[activeChartIndex].goalDate = val;
+              setMasterSets(updated);
+            }} style={{ margin: "0 5px" }} />
+          </label>
+        </div>
+
+        {/* Add data point */}
+        <div style={{ marginBottom: 10 }}>
+          <label>
+            Value:
+            <input type="number" value={newValue} onChange={(e) => setNewValue(e.target.value)} style={{ margin: "0 5px" }} />
+          </label>
+          <label>
+            Date:
+            <input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} style={{ margin: "0 5px" }} />
+          </label>
+          <button onClick={addPoint} style={{ marginLeft: 5 }}>+ Add</button>
+        </div>
+
+        {/* JSON import/export */}
+        <div style={{ marginBottom: 10 }}>
+          <button onClick={exportJSON} style={{ marginRight: 10 }}>Export JSON</button>
+          <input type="file" accept=".json" onChange={importJSON} />
+        </div>
+
+        {/* Chart */}
+        <div style={{ flex: 1, position: "relative", background: theme === "dark" ? "#111" : "#ccc", padding: 20, borderRadius: 8, minHeight: 0 }}>
+          <Line ref={chartRef} data={chartData} options={chartOptions} />
+          {hoveredPoint && (
+            <button
+              onClick={() => removePoint(hoveredPoint.index)}
+              style={{
+                position: "absolute",
+                left: hoveredPoint.x,
+                top: hoveredPoint.y - 20,
+                transform: "translate(-50%, -100%)",
+                background: "red",
+                color: "white",
+                border: "none",
+                borderRadius: 4,
+                padding: "2px 6px",
+                cursor: "pointer",
+                fontSize: 12,
+              }}
+            >
+              ✖
+            </button>
+          )}
+        </div>
+
+        {/* Notes */}
+        <div style={{ marginTop: 10 }}>
+          <textarea value={activeChart.notes} onChange={(e) => {
+            const updated = [...masterSets];
+            updated[activeSetIndex].charts[activeChartIndex].notes = e.target.value;
+            setMasterSets(updated);
+          }} placeholder="Add notes..." style={{ width: "100%", minHeight: 60, resize: "vertical", padding: 8 }} />
+        </div>
       </div>
     </div>
   );
