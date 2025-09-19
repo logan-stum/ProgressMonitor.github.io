@@ -313,110 +313,115 @@ function App() {
         color: "white",
       }}
     >
+      {/* Sidebar */}
       <div
-  style={{
-    width: sidebarOpen ? 250 : 50,
-    background: "#111",
-    transition: "width 0.3s",
-    display: "flex",
-    flexDirection: "column",
-    height: "100vh",
-  }}
->
-  <button
-    onClick={() => setSidebarOpen(!sidebarOpen)}
-    style={{
-      marginBottom: 10,
-      background: "transparent",
-      color: "white",
-      border: "none",
-      cursor: "pointer",
-      fontSize: 24,
-    }}
-  >
-    ☰
-  </button>
+        style={{
+          width: sidebarOpen ? 250 : 50,
+          background: "#111",
+          transition: "width 0.3s",
+          display: "flex",
+          flexDirection: "column",
+          height: "100vh",
+          overflow: "hidden",
+        }}
+      >
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          style={{
+            marginBottom: 10,
+            background: "transparent",
+            color: "white",
+            border: "none",
+            cursor: "pointer",
+            fontSize: 24,
+          }}
+        >
+          ☰
+        </button>
 
-  {/* Scrollable sets area */}
-  <div
-    style={{
-      flex: 1,
-      overflowY: "auto",
-      padding: 10,
-    }}
-  >
-    {sidebarOpen &&
-      masterSets.map((set, setIdx) => (
-        <div key={setIdx} style={{ marginBottom: 10 }}>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span
-              onClick={() => {
-                setActiveSetIndex(setIdx);
-                setActiveChartIndex(0);
-              }}
-              style={{
-                cursor: "pointer",
-                fontWeight: activeSetIndex === setIdx ? "bold" : "normal",
-              }}
-            >
-              {set.name}
-            </span>
-            <div>
-              <button onClick={() => renameMasterSet(setIdx)}>✎</button>
-              <button onClick={() => deleteMasterSet(setIdx)}>🗑️</button>
-            </div>
-          </div>
-          <div style={{ paddingLeft: 15, marginTop: 5 }}>
-            {set.charts.map((chart, chartIdx) => (
-              <div
-                key={chartIdx}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginBottom: 3,
-                }}
-              >
-                <span
-                  onClick={() => {
-                    setActiveSetIndex(setIdx);
-                    setActiveChartIndex(chartIdx);
-                  }}
-                  style={{
-                    cursor: "pointer",
-                    textDecoration:
-                      activeSetIndex === setIdx &&
-                      activeChartIndex === chartIdx
-                        ? "underline"
-                        : "none",
-                  }}
-                >
-                  {chart.name}
-                </span>
-                <div>
-                  <button onClick={() => renameChart(setIdx, chartIdx)}>✎</button>
-                  <button onClick={() => deleteChart(setIdx, chartIdx)}>🗑️</button>
+        {/* Scrollable list of sets */}
+        <div
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            padding: 10,
+          }}
+        >
+          {sidebarOpen &&
+            masterSets.map((set, setIdx) => (
+              <div key={setIdx} style={{ marginBottom: 10 }}>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span
+                    onClick={() => {
+                      setActiveSetIndex(setIdx);
+                      setActiveChartIndex(0);
+                    }}
+                    style={{
+                      cursor: "pointer",
+                      fontWeight: activeSetIndex === setIdx ? "bold" : "normal",
+                    }}
+                  >
+                    {set.name}
+                  </span>
+                  <div>
+                    <button onClick={() => renameMasterSet(setIdx)}>✎</button>
+                    <button onClick={() => deleteMasterSet(setIdx)}>🗑️</button>
+                  </div>
+                </div>
+                <div style={{ paddingLeft: 15, marginTop: 5 }}>
+                  {set.charts.map((chart, chartIdx) => (
+                    <div
+                      key={chartIdx}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        marginBottom: 3,
+                      }}
+                    >
+                      <span
+                        onClick={() => {
+                          setActiveSetIndex(setIdx);
+                          setActiveChartIndex(chartIdx);
+                        }}
+                        style={{
+                          cursor: "pointer",
+                          textDecoration:
+                            activeSetIndex === setIdx &&
+                            activeChartIndex === chartIdx
+                              ? "underline"
+                              : "none",
+                        }}
+                      >
+                        {chart.name}
+                      </span>
+                      <div>
+                        <button onClick={() => renameChart(setIdx, chartIdx)}>
+                          ✎
+                        </button>
+                        <button onClick={() => deleteChart(setIdx, chartIdx)}>
+                          🗑️
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => addChartToSet(setIdx)}
+                    style={{ marginTop: 3, fontSize: 12 }}
+                  >
+                    + Add Chart
+                  </button>
                 </div>
               </div>
             ))}
-            <button
-              onClick={() => addChartToSet(setIdx)}
-              style={{ marginTop: 3, fontSize: 12 }}
-            >
-              + Add Chart
-            </button>
-          </div>
         </div>
-      ))}
-  </div>
 
-  {/* Pinned footer */}
-  {sidebarOpen && (
-    <div style={{ padding: 10, borderTop: "1px solid #333" }}>
-      <button onClick={addMasterSet}>+ Add Master Set</button>
-    </div>
-  )}
-</div>
-
+        {/* Fixed footer */}
+        {sidebarOpen && (
+          <div style={{ padding: 10, borderTop: "1px solid #333" }}>
+            <button onClick={addMasterSet}>+ Add Master Set</button>
+          </div>
+        )}
+      </div>
 
       {/* Main content */}
       <div
