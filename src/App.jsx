@@ -54,9 +54,9 @@ function App() {
   const [newDate, setNewDate] = useState(new Date().toISOString().split("T")[0]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [hoveredPoint, setHoveredPoint] = useState(null);
-  const [theme, setTheme] = useState("dark"); // added theme state
+  const [theme, setTheme] = useState("dark");
 
-  // Load from localStorage
+  // Load data & theme from localStorage
   useEffect(() => {
     const saved = localStorage.getItem("progressData");
     if (saved) {
@@ -69,7 +69,6 @@ function App() {
     if (savedTheme) setTheme(savedTheme);
   }, []);
 
-  // Save to localStorage
   useEffect(() => {
     localStorage.setItem("progressData", JSON.stringify(masterSets));
     localStorage.setItem("theme", theme);
@@ -78,7 +77,6 @@ function App() {
   const activeSet = masterSets[activeSetIndex];
   const activeChart = activeSet.charts[activeChartIndex];
 
-  // --- theme styles ---
   const themeStyles = theme === "dark"
     ? { background: "#222", color: "white" }
     : { background: "#eee", color: "#222" };
@@ -108,7 +106,6 @@ function App() {
     setActiveSetIndex(updated.length - 1);
     setActiveChartIndex(0);
 
-    // Auto-scroll to the new set
     setTimeout(() => {
       const lastSetRef = setRefs.current[updated.length - 1];
       if (lastSetRef) lastSetRef.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -173,10 +170,7 @@ function App() {
   };
 
   const renameChart = (setIndex, chartIndex) => {
-    const newName = prompt(
-      "Rename Chart:",
-      masterSets[setIndex].charts[chartIndex].name
-    );
+    const newName = prompt("Rename Chart:", masterSets[setIndex].charts[chartIndex].name);
     if (!newName) return;
     const updated = [...masterSets];
     updated[setIndex].charts[chartIndex].name = newName;
@@ -337,7 +331,7 @@ function App() {
         >
           ☰
         </button>
-        {/* Theme toggle */}
+
         {sidebarOpen && (
           <button
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -355,13 +349,99 @@ function App() {
           </button>
         )}
 
-        {/* Sidebar list and add set button */}
-        {/* Keep your existing sidebar content here unchanged */}
+        {/* Scrollable list of sets */}
+        <div
+          ref={sidebarScrollRef}
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            padding: 10,
+          }}
+        >
+          {sidebarOpen &&
+            masterSets.map((set, setIdx) => (
+              <div
+                key={setIdx}
+                ref={(el) => (setRefs.current[setIdx] = el)}
+                style={{ marginBottom: 10 }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span
+                    onClick={() => {
+                      setActiveSetIndex(setIdx);
+                      setActiveChartIndex(0);
+                    }}
+                    style={{
+                      cursor: "pointer",
+                      fontWeight: activeSetIndex === setIdx ? "bold" : "normal",
+                    }}
+                  >
+                    {set.name}
+                  </span>
+                  <div>
+                    <button onClick={() => renameMasterSet(setIdx)}>✎</button>
+                    <button onClick={() => deleteMasterSet(setIdx)}>🗑️</button>
+                  </div>
+                </div>
+                <div style={{ paddingLeft: 15, marginTop: 5 }}>
+                  {set.charts.map((chart, chartIdx) => (
+                    <div
+                      key={chartIdx}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        marginBottom: 3,
+                      }}
+                    >
+                      <span
+                        onClick={() => {
+                          setActiveSetIndex(setIdx);
+                          setActiveChartIndex(chartIdx);
+                        }}
+                        style={{
+                          cursor: "pointer",
+                          textDecoration:
+                            activeSetIndex === setIdx && activeChartIndex === chartIdx
+                              ? "underline"
+                              : "none",
+                        }}
+                      >
+                        {chart.name}
+                      </span>
+                      <div>
+                        <button onClick={() => renameChart(setIdx, chartIdx)}>✎</button>
+                        <button onClick={() => deleteChart(setIdx, chartIdx)}>🗑️</button>
+                      </div>
+                    </div>
+                  ))}
+                  <button onClick={() => addChartToSet(setIdx)} style={{ marginTop: 3, fontSize: 12 }}>
+                    + Add Chart
+                  </button>
+                </div>
+              </div>
+            ))}
+        </div>
+
+        {sidebarOpen && (
+          <div style={{ padding: 10, borderTop: "1px solid #333" }}>
+            <button onClick={addMasterSet}>+ Add Master Set</button>
+          </div>
+        )}
       </div>
 
       {/* Main content */}
       <div style={{ flex: 1, padding: 20, display: "flex", flexDirection: "column", minHeight: 0, ...mainStyles }}>
-        {/* Keep all existing main content here, inputs, chart, notes, unchanged */}
+        <h1 style={{ display: "flex", alignItems: "center" }}>
+          <img
+            src="https://img.icons8.com/color/48/combo-chart--v1.png"
+            alt="logo"
+            style={{ marginRight: 10 }}
+          />
+          Progress Monitor
+        </h1>
+
+        {/* Start/Goal Inputs, Add Data, JSON Import/Export, Chart, Notes */}
+        {/* Keep all your previous main content unchanged */}
       </div>
     </div>
   );
