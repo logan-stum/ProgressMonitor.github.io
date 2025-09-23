@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
+import "chartjs-adapter-date-fns";
+
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
