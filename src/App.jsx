@@ -208,7 +208,7 @@ function App() {
   );
 
   const chartData = {
-    datasets: [
+      datasets: [
       {
         label: activeChart?.name || "Chart",
         data: activeChart?.data || [],
@@ -217,6 +217,8 @@ function App() {
         tension: 0.3,
         fill: false,
         pointRadius: 5,
+        pointHoverRadius: 10,      // increase hover radius
+        pointHitRadius: 10,        // increase clickable area
       },
       activeChart?.startDate &&
         activeChart?.goalDate && {
@@ -245,11 +247,17 @@ function App() {
       y: { min: 0, max: 100, title: { display: true, text: "Value" } },
     },
     onHover: (event, elements) => {
-      if (elements.length) {
-        const el = elements[0];
-        setHoveredPoint({ x: el.element.x, y: el.element.y, index: el.index });
-      } else setHoveredPoint(null);
-    },
+    if (elements.length) {
+      const el = elements[0];
+      setHoveredPoint({
+        x: el.element.x,
+        y: el.element.y,
+        index: el.index,
+      });
+    } else {
+      setHoveredPoint(null);
+    }
+  },
   };
 
   const themeStyles = theme === "dark" ? { background: "#222", color: "white" } : { background: "#eee", color: "#222" };
