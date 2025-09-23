@@ -262,9 +262,21 @@ const sidebarIconBtn = {
   return (
     <div style={{ display: "flex", height: "100vh", width: "100vw", ...themeStyles }}>
       {/* Sidebar */}
-      <div style={{ width: sidebarOpen ? 300 : 50, ...sidebarStyles, transition: "width 0.3s", display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
+      <div
+        style={{
+          width: sidebarOpen ? 300 : 50,
+          ...sidebarStyles,
+          transition: "width 0.3s",
+          display: "flex",
+          flexDirection: "column",
+          height: "100vh",
+          overflow: "hidden",
+          position: "relative", // keep relative for buttons inside
+        }}
+      >
+
         <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ marginBottom: 10, background: "transparent", border: "none", cursor: "pointer", fontSize: 24, color: theme === "dark" ? "white" : "#222" }}>☰</button>
-              {/* Theme Toggle */}
+      {/* Theme Toggle */}
       {sidebarOpen && (
         <button
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
