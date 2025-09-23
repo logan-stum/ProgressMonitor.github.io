@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
 import "chartjs-adapter-date-fns";
-
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -60,11 +59,9 @@ function App() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const chartRef = useRef(null);
-
   const activeChart =
     masterSets[activeSetIndex]?.charts[activeChartIndex] || null;
 
-  // Save to localStorage
   useEffect(() => {
     localStorage.setItem("progressData", JSON.stringify(masterSets));
   }, [masterSets]);
@@ -73,7 +70,6 @@ function App() {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  // Add Data Point
   const addPoint = () => {
     if (!newValue || !newDate || !activeChart) return;
     const updated = [...masterSets];
@@ -86,7 +82,6 @@ function App() {
     setNewDate("");
   };
 
-  // Remove Data Point
   const removePoint = (index) => {
     const updated = [...masterSets];
     updated[activeSetIndex].charts[activeChartIndex].data.splice(index, 1);
@@ -94,7 +89,6 @@ function App() {
     setHoveredPoint(null);
   };
 
-  // Master Set & Chart Management
   const addMasterSet = () => {
     const updated = [
       ...masterSets,
@@ -172,7 +166,6 @@ function App() {
     setActiveChartIndex(0);
   };
 
-  // JSON Import/Export
   const exportJSON = () => {
     const blob = new Blob([JSON.stringify(masterSets, null, 2)], {
       type: "application/json",
@@ -203,7 +196,6 @@ function App() {
     set.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Chart Data (Old Version)
   const chartData = {
     datasets: [
       {
@@ -238,329 +230,94 @@ function App() {
       tooltip: { mode: "nearest", intersect: false },
     },
     scales: {
-      x: {
-        type: "time",
-        time: { unit: "day", tooltipFormat: "yyyy-MM-dd" },
-        title: { display: true, text: "Date" },
-      },
-      y: {
-        min: 0,
-        max: 100,
-        title: { display: true, text: "Value" },
-      },
+      x: { type: "time", time: { unit: "day", tooltipFormat: "yyyy-MM-dd" }, title: { display: true, text: "Date" } },
+      y: { min: 0, max: 100, title: { display: true, text: "Value" } },
     },
     onHover: (event, elements) => {
       if (elements.length) {
         const el = elements[0];
         setHoveredPoint({ x: el.element.x, y: el.element.y, index: el.index });
-      } else {
-        setHoveredPoint(null);
-      }
+      } else setHoveredPoint(null);
     },
   };
 
-  const themeStyles =
-    theme === "dark"
-      ? { background: "#222", color: "white" }
-      : { background: "#eee", color: "#222" };
-  const sidebarStyles =
-    theme === "dark" ? { background: "#111" } : { background: "#ddd" };
-  const mainStyles =
-    theme === "dark" ? { background: "#222" } : { background: "#fff" };
+  const themeStyles = theme === "dark" ? { background: "#222", color: "white" } : { background: "#eee", color: "#222" };
+  const sidebarStyles = theme === "dark" ? { background: "#111" } : { background: "#ddd" };
+  const mainStyles = theme === "dark" ? { background: "#222" } : { background: "#fff" };
+
+  // Minimal button style helper
+  const btnSmall = { fontSize: "10px", padding: "2px 4px", marginLeft: "2px", background: "transparent", border: "none", cursor: "pointer" };
 
   return (
     <div style={{ display: "flex", height: "100vh", width: "100vw", ...themeStyles }}>
       {/* Sidebar */}
-      <div
-        style={{
-          width: sidebarOpen ? 300 : 50,
-          ...sidebarStyles,
-          transition: "width 0.3s",
-          display: "flex",
-          flexDirection: "column",
-          height: "100vh",
-          overflow: "hidden",
-        }}
-      >
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          style={{
-            marginBottom: 10,
-            background: "transparent",
-            border: "none",
-            cursor: "pointer",
-            fontSize: 24,
-            color: theme === "dark" ? "white" : "#222",
-          }}
-        >
-          ☰
-        </button>
-        {sidebarOpen && (
-          <button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            style={{
-              marginBottom: 10,
-              background: "transparent",
-              border: "none",
-              cursor: "pointer",
-              fontSize: 14,
-              color: theme === "dark" ? "white" : "#222",
-            }}
-          >
-            Toggle {theme === "dark" ? "Light" : "Dark"}
-          </button>
-        )}
-        {sidebarOpen && (
-          <input
-            type="text"
-            placeholder="Search sets..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              width: "90%",
-              margin: "0 auto 10px",
-              padding: "4px 6px",
-              fontSize: "13px",
-            }}
-          />
-        )}
+      <div style={{ width: sidebarOpen ? 300 : 50, ...sidebarStyles, transition: "width 0.3s", display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
+        <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ marginBottom: 10, background: "transparent", border: "none", cursor: "pointer", fontSize: 24, color: theme === "dark" ? "white" : "#222" }}>☰</button>
+        {sidebarOpen && <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} style={{ marginBottom: 10, ...btnSmall, color: theme === "dark" ? "white" : "#222" }}>Toggle {theme === "dark" ? "Light" : "Dark"}</button>}
+        {sidebarOpen && <input type="text" placeholder="Search sets..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ width: "90%", margin: "0 auto 10px", padding: "4px 6px", fontSize: "13px" }} />}
         <div style={{ flex: 1, overflowY: "auto", padding: 10 }}>
           {filteredSets.map((set, setIdx) => (
             <div key={setIdx} style={{ marginBottom: 10 }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
-                  <button onClick={() => toggleSetCollapse(setIdx)}>
-                    {set.collapsed ? "▶" : "▼"}
-                  </button>
-                  <span
-                    onClick={() => {
-                      setActiveSetIndex(setIdx);
-                      setActiveChartIndex(0);
-                    }}
-                    style={{
-                      marginLeft: 4,
-                      cursor: "pointer",
-                      fontWeight: activeSetIndex === setIdx ? "bold" : "normal",
-                    }}
-                  >
-                    {set.name}
-                  </span>
+                  <button onClick={() => toggleSetCollapse(setIdx)} style={btnSmall}>{set.collapsed ? "▶" : "▼"}</button>
+                  <span onClick={() => { setActiveSetIndex(setIdx); setActiveChartIndex(0); }} style={{ marginLeft: 4, cursor: "pointer", fontWeight: activeSetIndex === setIdx ? "bold" : "normal" }}>{set.name}</span>
                 </div>
                 <div>
-                  <button onClick={() => renameMasterSet(setIdx)}>✎</button>
-                  <button onClick={() => deleteMasterSet(setIdx)}>🗑️</button>
+                  <button onClick={() => renameMasterSet(setIdx)} style={btnSmall}>✎</button>
+                  <button onClick={() => deleteMasterSet(setIdx)} style={btnSmall}>🗑️</button>
                 </div>
               </div>
-
-              {!set.collapsed && (
-                <div style={{ paddingLeft: 15, marginTop: 5 }}>
-                  {set.charts.map((chart, chartIdx) => (
-                    <div
-                      key={chartIdx}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        marginBottom: 3,
-                      }}
-                    >
-                      <div>
-                        <button onClick={() => toggleChartCollapse(setIdx, chartIdx)}>
-                          {chart.collapsed ? "▶" : "▼"}
-                        </button>
-                        <span
-                          onClick={() => {
-                            setActiveSetIndex(setIdx);
-                            setActiveChartIndex(chartIdx);
-                          }}
-                          style={{
-                            marginLeft: 4,
-                            cursor: "pointer",
-                            textDecoration:
-                              activeSetIndex === setIdx &&
-                              activeChartIndex === chartIdx
-                                ? "underline"
-                                : "none",
-                          }}
-                        >
-                          {chart.name}
-                        </span>
-                      </div>
-                      <div>
-                        <button onClick={() => renameChart(setIdx, chartIdx)}>✎</button>
-                        <button onClick={() => deleteChart(setIdx, chartIdx)}>🗑️</button>
-                      </div>
+              {!set.collapsed && <div style={{ paddingLeft: 15, marginTop: 5 }}>
+                {set.charts.map((chart, chartIdx) => (
+                  <div key={chartIdx} style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+                    <div>
+                      <button onClick={() => toggleChartCollapse(setIdx, chartIdx)} style={btnSmall}>{chart.collapsed ? "▶" : "▼"}</button>
+                      <span onClick={() => { setActiveSetIndex(setIdx); setActiveChartIndex(chartIdx); }} style={{ marginLeft: 4, cursor: "pointer", textDecoration: activeSetIndex === setIdx && activeChartIndex === chartIdx ? "underline" : "none" }}>{chart.name}</span>
                     </div>
-                  ))}
-                  <button onClick={() => addChartToSet(setIdx)}>+ Add Chart</button>
-                </div>
-              )}
+                    <div>
+                      <button onClick={() => renameChart(setIdx, chartIdx)} style={btnSmall}>✎</button>
+                      <button onClick={() => deleteChart(setIdx, chartIdx)} style={btnSmall}>🗑️</button>
+                    </div>
+                  </div>
+                ))}
+                <button onClick={() => addChartToSet(setIdx)} style={{ ...btnSmall, marginTop: 3 }}>+ Chart</button>
+              </div>}
             </div>
           ))}
         </div>
-
-        {sidebarOpen && (
-          <div style={{ padding: 10, borderTop: `1px solid ${theme === "dark" ? "#333" : "#aaa"}` }}>
-            <button onClick={addMasterSet}>+ Add Master Set</button>
-          </div>
-        )}
+        {sidebarOpen && <div style={{ padding: 10, borderTop: `1px solid ${theme === "dark" ? "#333" : "#aaa"}` }}><button onClick={addMasterSet} style={btnSmall}>+ Set</button></div>}
       </div>
 
-      {/* Main */}
-      <div
-        style={{
-          flex: 1,
-          padding: 20,
-          display: "flex",
-          flexDirection: "column",
-          minHeight: 0,
-          ...mainStyles,
-        }}
-      >
-        <h1 style={{ display: "flex", alignItems: "center" }}>
-          <img
-            src="https://img.icons8.com/color/48/combo-chart--v1.png"
-            alt="logo"
-            style={{ marginRight: 10 }}
-          />
-          Progress Monitor
-        </h1>
-
-        {activeChart && (
-          <>
-            <div style={{ marginBottom: 10 }}>
-              <label>
-                Start Value:
-                <input
-                  type="number"
-                  value={activeChart.startValue}
-                  onChange={(e) => {
-                    const updated = [...masterSets];
-                    updated[activeSetIndex].charts[activeChartIndex].startValue =
-                      Number(e.target.value);
-                    setMasterSets(updated);
-                  }}
-                />
-              </label>
-              <label>
-                Start Date:
-                <input
-                  type="date"
-                  value={activeChart.startDate}
-                  onChange={(e) => {
-                    const updated = [...masterSets];
-                    updated[activeSetIndex].charts[activeChartIndex].startDate =
-                      e.target.value;
-                    setMasterSets(updated);
-                  }}
-                />
-              </label>
-            </div>
-            <div style={{ marginBottom: 10 }}>
-              <label>
-                Goal Value:
-                <input
-                  type="number"
-                  value={activeChart.goalValue}
-                  onChange={(e) => {
-                    const updated = [...masterSets];
-                    updated[activeSetIndex].charts[activeChartIndex].goalValue =
-                      Number(e.target.value);
-                    setMasterSets(updated);
-                  }}
-                />
-              </label>
-              <label>
-                Goal Date:
-                <input
-                  type="date"
-                  value={activeChart.goalDate}
-                  onChange={(e) => {
-                    const updated = [...masterSets];
-                    updated[activeSetIndex].charts[activeChartIndex].goalDate =
-                      e.target.value;
-                    setMasterSets(updated);
-                  }}
-                />
-              </label>
-            </div>
-
-            <div style={{ marginBottom: 10 }}>
-              <label>
-                Value:
-                <input
-                  type="number"
-                  value={newValue}
-                  onChange={(e) => setNewValue(e.target.value)}
-                />
-              </label>
-              <label>
-                Date:
-                <input
-                  type="date"
-                  value={newDate}
-                  onChange={(e) => setNewDate(e.target.value)}
-                />
-              </label>
-              <button onClick={addPoint}>+ Add</button>
-            </div>
-
-            <div style={{ marginBottom: 10 }}>
-              <button onClick={exportJSON}>Export JSON</button>
-              <input type="file" accept=".json" onChange={importJSON} />
-            </div>
-
-            <div
-              style={{
-                flex: 1,
-                position: "relative",
-                background: theme === "dark" ? "#111" : "#ddd",
-                padding: 20,
-                borderRadius: 8,
-                minHeight: 0,
-              }}
-            >
-              <Line ref={chartRef} data={chartData} options={chartOptions} />
-              {hoveredPoint && (
-                <button
-                  onClick={() => removePoint(hoveredPoint.index)}
-                  style={{
-                    position: "absolute",
-                    left: hoveredPoint.x,
-                    top: hoveredPoint.y - 20,
-                    transform: "translate(-50%, -100%)",
-                    background: "red",
-                    color: "white",
-                    border: "none",
-                    borderRadius: 4,
-                    padding: "2px 6px",
-                    cursor: "pointer",
-                    fontSize: 12,
-                  }}
-                >
-                  ✖
-                </button>
-              )}
-            </div>
-
-            <textarea
-              value={activeChart.notes}
-              onChange={(e) => {
-                const updated = [...masterSets];
-                updated[activeSetIndex].charts[activeChartIndex].notes =
-                  e.target.value;
-                setMasterSets(updated);
-              }}
-              placeholder="Add notes..."
-              style={{ width: "100%", minHeight: 60, resize: "vertical", padding: 8, marginTop: 10 }}
-            />
-          </>
-        )}
+      {/* Main Content */}
+      <div style={{ flex: 1, padding: 20, display: "flex", flexDirection: "column", minHeight: 0, ...mainStyles }}>
+        <h1 style={{ display: "flex", alignItems: "center" }}><img src="https://img.icons8.com/color/48/combo-chart--v1.png" alt="logo" style={{ marginRight: 10 }} />Progress Monitor</h1>
+        {activeChart && <>
+          <div style={{ marginBottom: 10 }}>
+            <label>Start Value: <input type="number" value={activeChart.startValue} onChange={(e) => { const updated = [...masterSets]; updated[activeSetIndex].charts[activeChartIndex].startValue = Number(e.target.value); setMasterSets(updated); }} style={{ margin: "0 5px", width: 60 }}/></label>
+            <label>Start Date: <input type="date" defaultValue={activeChart.startDate} onBlur={(e) => { const val = e.target.value; if(!val) return; const updated = [...masterSets]; updated[activeSetIndex].charts[activeChartIndex].startDate = val; setMasterSets(updated); }} style={{ margin: "0 5px" }}/></label>
+          </div>
+          <div style={{ marginBottom: 10 }}>
+            <label>Goal Value: <input type="number" value={activeChart.goalValue} onChange={(e) => { const updated = [...masterSets]; updated[activeSetIndex].charts[activeChartIndex].goalValue = Number(e.target.value); setMasterSets(updated); }} style={{ margin: "0 5px", width: 60 }}/></label>
+            <label>Goal Date: <input type="date" defaultValue={activeChart.goalDate} onBlur={(e) => { const val = e.target.value; if(!val) return; const updated = [...masterSets]; updated[activeSetIndex].charts[activeChartIndex].goalDate = val; setMasterSets(updated); }} style={{ margin: "0 5px" }}/></label>
+          </div>
+          <div style={{ marginBottom: 10 }}>
+            <label>Value: <input type="number" value={newValue} onChange={(e) => setNewValue(e.target.value)} style={{ margin: "0 5px", width: 60 }}/></label>
+            <label>Date: <input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} style={{ margin: "0 5px" }}/></label>
+            <button onClick={addPoint} style={{ ...btnSmall, marginLeft: 5 }}>+ Add</button>
+          </div>
+          <div style={{ marginBottom: 10 }}>
+            <button onClick={exportJSON} style={{ ...btnSmall, marginRight: 5 }}>Export</button>
+            <input type="file" accept=".json" onChange={importJSON} />
+          </div>
+          <div style={{ flex: 1, position: "relative", background: theme === "dark" ? "#111" : "#ddd", padding: 20, borderRadius: 8, minHeight: 0 }}>
+            <Line ref={chartRef} data={chartData} options={chartOptions} />
+            {hoveredPoint && <button onClick={() => removePoint(hoveredPoint.index)} style={{ position: "absolute", left: hoveredPoint.x, top: hoveredPoint.y - 20, transform: "translate(-50%, -100%)", background: "red", color: "white", border: "none", borderRadius: 4, padding: "2px 6px", cursor: "pointer", fontSize: 12 }}>✖</button>}
+          </div>
+          <div style={{ marginTop: 10 }}>
+            <textarea value={activeChart.notes} onChange={(e) => { const updated = [...masterSets]; updated[activeSetIndex].charts[activeChartIndex].notes = e.target.value; setMasterSets(updated); }} placeholder="Add notes..." style={{ width: "100%", minHeight: 60, resize: "vertical", padding: 8 }}/>
+          </div>
+        </>}
       </div>
     </div>
   );
