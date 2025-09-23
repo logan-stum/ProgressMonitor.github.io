@@ -54,13 +54,11 @@ function App() {
   const [newValue, setNewValue] = useState("");
   const [newDate, setNewDate] = useState("");
   const [newNotes, setNewNotes] = useState("");
-  const [hoveredPoint, setHoveredPoint] = useState(null);
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [sidebarWidth, setSidebarWidth] = useState(300);
   const [dragging, setDragging] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedPointIndex, setSelectedPointIndex] = useState(null);
 
   const chartRef = useRef(null);
   const activeChart =
@@ -98,7 +96,6 @@ function App() {
     const updated = [...masterSets];
     updated[activeSetIndex].charts[activeChartIndex].data.splice(index, 1);
     setMasterSets(updated);
-    setHoveredPoint(null);
   };
 
   const addMasterSet = () => {
@@ -209,7 +206,7 @@ function App() {
   );
 
   const chartData = {
-      datasets: [
+    datasets: [
       {
         label: activeChart?.name || "Chart",
         data: activeChart?.data || [],
@@ -218,8 +215,6 @@ function App() {
         tension: 0.3,
         fill: false,
         pointRadius: 5,
-        pointHoverRadius: 50,      // increase hover radius
-        pointHitRadius: 50,        // increase clickable area
       },
       activeChart?.startDate &&
         activeChart?.goalDate && {
@@ -247,25 +242,24 @@ function App() {
       x: { type: "time", time: { unit: "day", tooltipFormat: "yyyy-MM-dd" }, title: { display: true, text: "Date" } },
       y: { min: 0, max: 100, title: { display: true, text: "Value" } },
     },
-    onClick: (event, elements) => {
-    if (elements.length) {
-      setSelectedPointIndex(elements[0].index);
-    } else {
-      setSelectedPointIndex(null);
-    }
-  },
-
+    onClick: null, // disable normal click
+    onContextMenu: (event, elements) => {
+      event.preventDefault();
+      if (elements.length && activeChart) {
+        const idx = elements[0].index;
+        if (window.confirm(`Delete point ${activeChart.data[idx].x} - ${activeChart.data[idx].y}?`)) {
+          removePoint(idx);
+        }
+      }
+    },
   };
 
   const themeStyles = theme === "dark" ? { background: "#222", color: "white" } : { background: "#eee", color: "#222" };
   const sidebarStyles = theme === "dark" ? { background: "#111" } : { background: "#ddd" };
   const mainStyles = theme === "dark" ? { background: "#222" } : { background: "#fff" };
-
-  // Minimal button styles
   const btnSmall = { fontSize: "16px", padding: "2px 4px", marginLeft: "2px", background: "transparent", border: "none", cursor: "pointer" };
   const sidebarIconBtn = { fontSize: "16px", padding: "0", margin: "2px", background: "transparent", border: "none", cursor: "pointer", color: theme === "dark" ? "white" : "#222", lineHeight: 1 };
 
-  // Sidebar drag events
   const onMouseDown = () => setDragging(true);
   const onMouseMove = (e) => { if(dragging) setSidebarWidth(Math.max(150, e.clientX)); };
   const onMouseUp = () => setDragging(false);
@@ -295,19 +289,12 @@ function App() {
         }}
       >
         <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ marginBottom: 10, background: "transparent", border: "none", cursor: "pointer", fontSize: 24, color: theme === "dark" ? "white" : "#222" }}>☰</button>
-
         {sidebarOpen && (
           <>
-            <button
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              style={{ marginBottom: 10, background: "transparent", border: "none", cursor: "pointer", fontSize: 14, color: theme === "dark" ? "white" : "#222" }}
-            >
-              Toggle {theme === "dark" ? "Light" : "Dark"}
-            </button>
+            <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} style={{ marginBottom: 10, background: "transparent", border: "none", cursor: "pointer", fontSize: 14, color: theme === "dark" ? "white" : "#222" }}>Toggle {theme === "dark" ? "Light" : "Dark"}</button>
             <input type="text" placeholder="Search sets..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ width: "90%", margin: "0 auto 10px", padding: "4px 6px", fontSize: "13px" }} />
           </>
         )}
-
         <div style={{ flex: 1, overflowY: "auto", padding: 10 }}>
           {filteredSets.map((set, setIdx) => (
             <div key={setIdx} style={{ marginBottom: 10 }}>
@@ -334,34 +321,13 @@ function App() {
                     </div>
                   </div>
                 ))}
-                <button
-                  onClick={() => addChartToSet(setIdx)}
-                  style={{ marginTop: 3, fontSize: "12px", padding: "3px 6px" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = theme === "dark" ? "#333" : "#ddd")}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-                >
-                  + Add Chart
-                </button>
+                <button onClick={() => addChartToSet(setIdx)} style={{ marginTop: 3, fontSize: "12px", padding: "3px 6px" }}>+ Add Chart</button>
               </div>}
             </div>
           ))}
         </div>
-
-        {sidebarOpen && (
-          <div style={{ padding: 10, borderTop: `1px solid ${theme === "dark" ? "#333" : "#aaa"}` }}>
-            <button
-              onClick={addMasterSet}
-              style={{ fontSize: "12px", padding: "3px 6px" }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = theme === "dark" ? "#333" : "#ddd")}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-            >
-              + Add Master Set
-            </button>
-          </div>
-        )}
-
-        {/* Draggable handle */}
-        {sidebarOpen && <div style={{ width: 5, cursor: "col-resize", position: "absolute", top: 0, right: 0, bottom: 0, zIndex: 10 }} onMouseDown={onMouseDown} />}
+        {sidebarOpen && <div style={{ padding: 10, borderTop: `1px solid ${theme === "dark" ? "#333" : "#aaa"}` }}><button onClick={addMasterSet} style={{ fontSize: "12px", padding: "3px 6px" }}>+ Add Master Set</button></div>}
+        {sidebarOpen && <div style={{ width: 5, cursor: "col-resize", position: "absolute", top: 0, right: 0, bottom: 0, zIndex: 10 }} onMouseDown={() => setDragging(true)} />}
       </div>
 
       {/* Main Content */}
@@ -379,58 +345,24 @@ function App() {
             <label>Goal Date: <input type="date" defaultValue={activeChart.goalDate} onBlur={(e) => { const val = e.target.value; if(!val) return; const updated = [...masterSets]; updated[activeSetIndex].charts[activeChartIndex].goalDate = val; setMasterSets(updated); }} style={{ margin: "0 5px" }}/></label>
           </div>
 
-          {/* Add Data */}
           <div style={{ marginBottom: 10, display: "flex", alignItems: "center", gap: "5px" }}>
-            <label>
-              Value:
-              <input type="number" value={newValue} onChange={(e) => setNewValue(e.target.value)} style={{ width: 60, marginLeft: 4 }} />
-            </label>
-            <label>
-              Date:
-              <input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} style={{ marginLeft: 4 }} />
-            </label>
-            <label>
-              Additional Notes:
-              <input type="text" value={newNotes} onChange={(e) => setNewNotes(e.target.value)} style={{ marginLeft: 4, flex: 1 }} placeholder="Optional notes..." />
-            </label>
-            <button onClick={addPoint} style={{ ...btnSmall }}>+ Add</button>
+            <label>Value: <input type="number" value={newValue} onChange={(e) => setNewValue(e.target.value)} style={{ width: 60, marginLeft: 4 }} /></label>
+            <label>Date: <input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} style={{ marginLeft: 4 }} /></label>
+            <label>Additional Notes: <input type="text" value={newNotes} onChange={(e) => setNewNotes(e.target.value)} style={{ marginLeft: 4, flex: 1 }} placeholder="Optional notes..." /></label>
+            <button onClick={addPoint} style={btnSmall}>+ Add</button>
           </div>
 
-          {/* Export / Import */}
           <div style={{ marginBottom: 10 }}>
             <button onClick={exportJSON} style={{ ...btnSmall, marginRight: 5 }}>Export</button>
             <input type="file" accept=".json" onChange={importJSON} />
           </div>
 
-          {/* Chart */}
           <div style={{ flex: 1, position: "relative", background: theme === "dark" ? "#111" : "#ddd", padding: 20, borderRadius: 8, minHeight: 0 }}>
             <Line ref={chartRef} data={chartData} options={chartOptions} />
-            {selectedPointIndex !== null && (
-              <button
-                onClick={() => { removePoint(selectedPointIndex); setSelectedPointIndex(null); }}
-                style={{
-                  position: "absolute",
-                  left: chartRef.current?.scales?.x.getPixelForValue(activeChart.data[selectedPointIndex].x) || 0,
-                  top: chartRef.current?.scales?.y.getPixelForValue(activeChart.data[selectedPointIndex].y) || 0,
-                  transform: "translate(-50%, -50%)",
-                  background: "red",
-                  color: "white",
-                  border: "none",
-                  borderRadius: 4,
-                  padding: "2px 6px",
-                  cursor: "pointer",
-                  fontSize: 12,
-                  zIndex: 10,
-                }}
-              >
-                ✖
-              </button>
-            )}
           </div>
 
-          {/* Notes */}
           <div style={{ marginTop: 10 }}>
-            <textarea value={activeChart.notes} onChange={(e) => { const updated = [...masterSets]; updated[activeSetIndex].charts[activeChartIndex].notes = e.target.value; setMasterSets(updated); }} placeholder="Add notes..." style={{ width: "100%", minHeight: 60, resize: "vertical", padding: 8 }}/>
+            <textarea value={activeChart.notes} onChange={(e) => { const updated = [...masterSets]; updated[activeSetIndex].charts[activeChartIndex].notes = e.target.value; setMasterSets(updated); }} placeholder="Add notes..." style={{ width: "100%", minHeight: 60, resize: "vertical", padding: 8 }} />
           </div>
 
           {/* Log */}
@@ -451,3 +383,4 @@ function App() {
 }
 
 export default App;
+
