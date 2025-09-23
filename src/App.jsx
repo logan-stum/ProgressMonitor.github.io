@@ -255,23 +255,30 @@ function App() {
 
   return (
     <div style={{ display: "flex", height: "100vh", width: "100vw", ...themeStyles }}>
-      {/* Sidebar */}
-      <div
-        style={{
-          width: sidebarOpen ? 300 : 50,
-          ...sidebarStyles,
-          transition: "width 0.3s",
-          display: "flex",
-          flexDirection: "column",
-          height: "100vh",
-          overflow: "hidden",
-          position: "relative",
-        }}
-      >
+      {/* Sidebar container */}
+        <div
+          style={{
+            width: sidebarOpen ? 300 : 50,
+            ...sidebarStyles,
+            display: "flex",
+            flexDirection: "column",
+            height: "100vh",
+            overflow: "hidden",
+            position: "relative",
+          }}
+        >
         {/* Hamburger toggle */}
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          style={{ marginBottom: 10, background: "transparent", border: "none", cursor: "pointer", fontSize: 24, color: theme === "dark" ? "white" : "#222" }}
+          style={{
+            marginBottom: 10,
+            background: "transparent",
+            border: "none",
+            cursor: "pointer",
+            fontSize: 24,
+            color: theme === "dark" ? "white" : "#222",
+            zIndex: 2,           // make sure it’s always on top
+          }}
         >
           ☰
         </button>
