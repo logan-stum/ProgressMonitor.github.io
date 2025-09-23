@@ -78,6 +78,43 @@ function App() {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
+  useEffect(() => {
+  const chart = chartRef.current;
+  if (!chart) return;
+
+  const canvas = chart.canvas;
+
+  const handleContextMenu = (e) => {
+    e.preventDefault();
+
+    if (!activeChart) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    // Get points under cursor
+    const points = chart.getElementsAtEventForMode(
+      e,
+      'nearest',
+      { intersect: true },
+      true
+    );
+
+    if (points.length) {
+      const idx = points[0].index;
+      const point = activeChart.data[idx];
+
+      if (window.confirm(`Delete point ${point.x} - ${point.y}%?`)) {
+        removePoint(idx);
+      }
+    }
+  };
+
+  canvas.addEventListener("contextmenu", handleContextMenu);
+  return () => canvas.removeEventListener("contextmenu", handleContextMenu);
+}, [activeChart, chartRef]);
+
   const addPoint = () => {
     if (!newValue || !newDate || !activeChart) return;
     const updated = [...masterSets];
