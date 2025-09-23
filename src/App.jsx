@@ -246,7 +246,7 @@ function App() {
   const mainStyles = theme === "dark" ? { background: "#222" } : { background: "#fff" };
 
   // Minimal button style helper
-  const btnSmall = { fontSize: "10px", padding: "2px 4px", marginLeft: "2px", background: "transparent", border: "none", cursor: "pointer" };
+  const btnSmall = { fontSize: "16px", padding: "2px 4px", marginLeft: "2px", background: "transparent", border: "none", cursor: "pointer" };
 // Minimal sidebar button style (icon only)
 const sidebarIconBtn = {
   fontSize: "16px",
@@ -264,7 +264,22 @@ const sidebarIconBtn = {
       {/* Sidebar */}
       <div style={{ width: sidebarOpen ? 300 : 50, ...sidebarStyles, transition: "width 0.3s", display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
         <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ marginBottom: 10, background: "transparent", border: "none", cursor: "pointer", fontSize: 24, color: theme === "dark" ? "white" : "#222" }}>☰</button>
-        {sidebarOpen && <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} style={{ marginBottom: 10, ...btnSmall, color: theme === "dark" ? "white" : "#222" }}>Toggle {theme === "dark" ? "Light" : "Dark"}</button>}
+              {/* Theme Toggle */}
+      {sidebarOpen && (
+        <button
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          style={{
+            marginBottom: 10,
+            background: "transparent",
+            border: "none",
+            cursor: "pointer",
+            fontSize: 14,
+            color: theme === "dark" ? "white" : "#222",
+          }}
+        >
+          Toggle {theme === "dark" ? "Light" : "Dark"}
+        </button>
+      )}
         {sidebarOpen && <input type="text" placeholder="Search sets..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ width: "90%", margin: "0 auto 10px", padding: "4px 6px", fontSize: "13px" }} />}
         <div style={{ flex: 1, overflowY: "auto", padding: 10 }}>
           {filteredSets.map((set, setIdx) => (
@@ -292,14 +307,54 @@ const sidebarIconBtn = {
                     </div>
                   </div>
                 ))}
-                <button onClick={() => addChartToSet(setIdx)} style={{ ...btnSmall, marginTop: 3 }}>+ Chart</button>
+                <button
+                  onClick={() => addChartToSet(setIdx)}
+                  style={{
+                    marginTop: 3,
+                    fontSize: "12px",
+                    padding: "3px 6px",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor =
+                      theme === "dark" ? "#333" : "#ddd")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = "transparent")
+                  }
+                >
+                  + Add Chart
+                </button>
               </div>}
             </div>
           ))}
         </div>
-        {sidebarOpen && <div style={{ padding: 10, borderTop: `1px solid ${theme === "dark" ? "#333" : "#aaa"}` }}><button onClick={addMasterSet} style={btnSmall}>+ Set</button></div>}
-      </div>
-
+{/* Add Master Set */}
+      {sidebarOpen && (
+        <div
+          style={{
+            padding: 10,
+            borderTop: `1px solid ${theme === "dark" ? "#333" : "#aaa"}`,
+          }}
+        >
+          <button
+            onClick={addMasterSet}
+            style={{
+              fontSize: "12px",
+              padding: "3px 6px",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor =
+                theme === "dark" ? "#333" : "#ddd")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = "transparent")
+            }
+          >
+            + Add Master Set
+          </button>
+        </div>
+      )}
+    </div>
       {/* Main Content */}
       <div style={{ flex: 1, padding: 20, display: "flex", flexDirection: "column", minHeight: 0, ...mainStyles }}>
         <h1 style={{ display: "flex", alignItems: "center" }}><img src="https://img.icons8.com/color/48/combo-chart--v1.png" alt="logo" style={{ marginRight: 10 }} />Progress Monitor</h1>
