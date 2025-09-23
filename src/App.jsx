@@ -60,6 +60,7 @@ function App() {
   const [sidebarWidth, setSidebarWidth] = useState(300);
   const [dragging, setDragging] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedPointIndex, setSelectedPointIndex] = useState(null);
 
   const chartRef = useRef(null);
   const activeChart =
@@ -246,18 +247,14 @@ function App() {
       x: { type: "time", time: { unit: "day", tooltipFormat: "yyyy-MM-dd" }, title: { display: true, text: "Date" } },
       y: { min: 0, max: 100, title: { display: true, text: "Value" } },
     },
-    onHover: (event, elements) => {
+    onClick: (event, elements) => {
     if (elements.length) {
-      const el = elements[0];
-      setHoveredPoint({
-        x: el.element.x,
-        y: el.element.y,
-        index: el.index,
-      });
+      setSelectedPointIndex(elements[0].index);
     } else {
-      setHoveredPoint(null);
+      setSelectedPointIndex(null);
     }
   },
+
   };
 
   const themeStyles = theme === "dark" ? { background: "#222", color: "white" } : { background: "#eee", color: "#222" };
@@ -408,7 +405,27 @@ function App() {
           {/* Chart */}
           <div style={{ flex: 1, position: "relative", background: theme === "dark" ? "#111" : "#ddd", padding: 20, borderRadius: 8, minHeight: 0 }}>
             <Line ref={chartRef} data={chartData} options={chartOptions} />
-            {hoveredPoint && <button onClick={() => removePoint(hoveredPoint.index)} style={{ position: "absolute", left: hoveredPoint.x, top: hoveredPoint.y - 5, transform: "translate(-50%, -50%)", background: "red", color: "white", border: "none", borderRadius: 4, padding: "2px 6px", cursor: "pointer", fontSize: 12 }}>✖</button>}
+            {selectedPointIndex !== null && (
+              <button
+                onClick={() => { removePoint(selectedPointIndex); setSelectedPointIndex(null); }}
+                style={{
+                  position: "absolute",
+                  left: chartRef.current?.scales?.x.getPixelForValue(activeChart.data[selectedPointIndex].x) || 0,
+                  top: chartRef.current?.scales?.y.getPixelForValue(activeChart.data[selectedPointIndex].y) || 0,
+                  transform: "translate(-50%, -50%)",
+                  background: "red",
+                  color: "white",
+                  border: "none",
+                  borderRadius: 4,
+                  padding: "2px 6px",
+                  cursor: "pointer",
+                  fontSize: 12,
+                  zIndex: 10,
+                }}
+              >
+                ✖
+              </button>
+            )}
           </div>
 
           {/* Notes */}
