@@ -146,14 +146,22 @@ function App() {
     setMasterSets(updated);
   };
 
-  const deleteMasterSet = (setIdx) => {
-    if (!window.confirm("Delete this set?")) return;
-    const updated = [...masterSets];
-    updated.splice(setIdx, 1);
-    setMasterSets(updated);
-    setActiveSetIndex(0);
-    setActiveChartIndex(0);
-  };
+const deleteMasterSet = (setIdx) => {
+  if (!window.confirm("Delete this set?")) return;
+
+  // Find the actual index in masterSets
+  const actualIndex = masterSets.findIndex(set => set === filteredSets[setIdx]);
+  if (actualIndex === -1) return;
+
+  const updated = [...masterSets];
+  updated.splice(actualIndex, 1);
+  setMasterSets(updated);
+
+  // Reset active indexes if needed
+  setActiveSetIndex(0);
+  setActiveChartIndex(0);
+};
+
 
   const renameChart = (setIdx, chartIdx) => {
     const newName = prompt(
@@ -371,7 +379,7 @@ function App() {
             <ul style={{ margin: 0, paddingLeft: 20 }}>
               {activeChart?.data.map((point, idx) => (
                 <li key={idx}>
-                  {point.x} - {point.y}{point.notes ? ` (${point.notes})` : ""}
+                  {point.x} - {point.y}%{point.notes ? ` (${point.notes})` : ""}
                 </li>
               ))}
             </ul>
