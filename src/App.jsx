@@ -249,259 +249,311 @@ function App() {
         ...themeStyles,
       }}
     >
-      {/* Sidebar */}
-      <div
+    {/* Sidebar */}
+    <div
+      style={{
+        width: sidebarOpen ? 300 : 50,
+        ...sidebarStyles,
+        transition: "width 0.3s",
+        display: "flex",
+        flexDirection: "column",
+        height: "100vh",
+        overflow: "hidden",
+      }}
+    >
+      {/* Sidebar Toggle */}
+      <button
+        onClick={() => setSidebarOpen(!sidebarOpen)}
         style={{
-          width: sidebarOpen ? 300 : 50,
-          ...sidebarStyles,
-          transition: "width 0.3s",
-          display: "flex",
-          flexDirection: "column",
-          height: "100vh",
-          overflow: "hidden",
+          marginBottom: 10,
+          background: "transparent",
+          border: "none",
+          cursor: "pointer",
+          fontSize: 24,
+          color: theme === "dark" ? "white" : "#222",
         }}
       >
-        {/* Reusable small button style */}
-        {(() => {
-          const style = {
-            fontSize: "12px",
-            padding: "2px 6px",
-            marginLeft: "2px",
-            background: "transparent",
-            border: "none",
-            cursor: "pointer",
-          };
-          return null; // placeholder so React doesn’t render it
-        })()}
+        ☰
+      </button>
 
-        {/* Toggle Sidebar */}
+      {/* Theme Toggle */}
+      {sidebarOpen && (
         <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           style={{
             marginBottom: 10,
             background: "transparent",
             border: "none",
             cursor: "pointer",
-            fontSize: 24,
+            fontSize: 14,
             color: theme === "dark" ? "white" : "#222",
           }}
         >
-          ☰
+          Toggle {theme === "dark" ? "Light" : "Dark"}
         </button>
+      )}
 
-        {/* Theme Toggle */}
-        {sidebarOpen && (
-          <button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            style={{
-              marginBottom: 10,
-              background: "transparent",
-              border: "none",
-              cursor: "pointer",
-              fontSize: 14,
-              color: theme === "dark" ? "white" : "#222",
-            }}
-          >
-            Toggle {theme === "dark" ? "Light" : "Dark"}
-          </button>
-        )}
+      {/* Search */}
+      {sidebarOpen && (
+        <input
+          type="text"
+          placeholder="Search sets..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{
+            width: "90%",
+            margin: "0 auto 10px",
+            padding: "4px 6px",
+            fontSize: "13px",
+          }}
+        />
+      )}
 
-        {/* Search */}
-        {sidebarOpen && (
-          <input
-            type="text"
-            placeholder="Search sets..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              width: "90%",
-              margin: "0 auto 10px",
-              padding: "4px 6px",
-              fontSize: "13px",
-            }}
-          />
-        )}
-
-        {/* Sets */}
-        <div style={{ flex: 1, overflowY: "auto", padding: 10 }}>
-          {filteredSets.map((set, setIdx) => (
-            <div key={setIdx} style={{ marginBottom: 10 }}>
-              {/* Set Header */}
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <button
-                    onClick={() => toggleSetCollapse(setIdx)}
-                    style={{
-                      fontSize: "12px",
-                      padding: "2px 6px",
-                      background: "transparent",
-                      border: "none",
-                      cursor: "pointer",
-                    }}
-                  >
-                    {set.collapsed ? "▶" : "▼"}
-                  </button>
-                  <span
-                    onClick={() => {
-                      setActiveSetIndex(setIdx);
-                      setActiveChartIndex(0);
-                    }}
-                    style={{
-                      cursor: "pointer",
-                      fontWeight: activeSetIndex === setIdx ? "bold" : "normal",
-                      marginLeft: 4,
-                    }}
-                  >
-                    {set.name}
-                  </span>
-                </div>
-                <div>
-                  <button
-                    onClick={() => renameMasterSet(setIdx)}
-                    style={{
-                      fontSize: "12px",
-                      padding: "2px 6px",
-                      marginLeft: "2px",
-                      background: "transparent",
-                      border: "none",
-                      cursor: "pointer",
-                    }}
-                  >
-                    ✎
-                  </button>
-                  <button
-                    onClick={() => deleteMasterSet(setIdx)}
-                    style={{
-                      fontSize: "12px",
-                      padding: "2px 6px",
-                      marginLeft: "2px",
-                      background: "transparent",
-                      border: "none",
-                      cursor: "pointer",
-                    }}
-                  >
-                    🗑️
-                  </button>
-                </div>
-              </div>
-
-              {/* Charts in Set */}
-              {!set.collapsed && (
-                <div style={{ paddingLeft: 15, marginTop: 5 }}>
-                  {set.charts.map((chart, chartIdx) => (
-                    <div
-                      key={chartIdx}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginBottom: 3,
-                      }}
-                    >
-                      <div style={{ display: "flex", alignItems: "center" }}>
-                        <button
-                          onClick={() => toggleChartCollapse(setIdx, chartIdx)}
-                          style={{
-                            fontSize: "12px",
-                            padding: "2px 6px",
-                            background: "transparent",
-                            border: "none",
-                            cursor: "pointer",
-                          }}
-                        >
-                          {chart.collapsed ? "▶" : "▼"}
-                        </button>
-                        <span
-                          onClick={() => {
-                            setActiveSetIndex(setIdx);
-                            setActiveChartIndex(chartIdx);
-                          }}
-                          style={{
-                            cursor: "pointer",
-                            marginLeft: 4,
-                            textDecoration:
-                              activeSetIndex === setIdx &&
-                              activeChartIndex === chartIdx
-                                ? "underline"
-                                : "none",
-                          }}
-                        >
-                          {chart.name}
-                        </span>
-                      </div>
-                      <div>
-                        <button
-                          onClick={() => renameChart(setIdx, chartIdx)}
-                          style={{
-                            fontSize: "12px",
-                            padding: "2px 6px",
-                            marginLeft: "2px",
-                            background: "transparent",
-                            border: "none",
-                            cursor: "pointer",
-                          }}
-                        >
-                          ✎
-                        </button>
-                        <button
-                          onClick={() => deleteChart(setIdx, chartIdx)}
-                          style={{
-                            fontSize: "12px",
-                            padding: "2px 6px",
-                            marginLeft: "2px",
-                            background: "transparent",
-                            border: "none",
-                            cursor: "pointer",
-                          }}
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                  <button
-                    onClick={() => addChartToSet(setIdx)}
-                    style={{
-                      marginTop: 3,
-                      fontSize: "12px",
-                      padding: "3px 6px",
-                    }}
-                  >
-                    + Add Chart
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Add Master Set */}
-        {sidebarOpen && (
-          <div
-            style={{
-              padding: 10,
-              borderTop: `1px solid ${theme === "dark" ? "#333" : "#aaa"}`,
-            }}
-          >
-            <button
-              onClick={addMasterSet}
+      {/* Sets */}
+      <div style={{ flex: 1, overflowY: "auto", padding: 10 }}>
+        {filteredSets.map((set, setIdx) => (
+          <div key={setIdx} style={{ marginBottom: 10 }}>
+            {/* Set Header */}
+            <div
               style={{
-                fontSize: "12px",
-                padding: "3px 6px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
               }}
             >
-              + Add Master Set
-            </button>
+              <div style={{ display: "flex", alignItems: "center" }}>
+                <button
+                  onClick={() => toggleSetCollapse(setIdx)}
+                  style={{
+                    fontSize: "12px",
+                    padding: "2px 6px",
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor =
+                      theme === "dark" ? "#444" : "#eee")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = "transparent")
+                  }
+                >
+                  {set.collapsed ? "▶" : "▼"}
+                </button>
+                <span
+                  onClick={() => {
+                    setActiveSetIndex(setIdx);
+                    setActiveChartIndex(0);
+                  }}
+                  style={{
+                    cursor: "pointer",
+                    fontWeight: activeSetIndex === setIdx ? "bold" : "normal",
+                    marginLeft: 4,
+                    padding: "2px 4px",
+                    borderRadius: "4px",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor =
+                      theme === "dark" ? "#444" : "#eee")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = "transparent")
+                  }
+                >
+                  {set.name}
+                </span>
+              </div>
+              <div>
+                <button
+                  onClick={() => renameMasterSet(setIdx)}
+                  style={{
+                    fontSize: "10px",
+                    padding: "2px 3px",
+                    marginLeft: "2px",
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = "orange")}
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.color =
+                      theme === "dark" ? "white" : "#222")
+                  }
+                >
+                  ✎
+                </button>
+                <button
+                  onClick={() => deleteMasterSet(setIdx)}
+                  style={{
+                    fontSize: "10px",
+                    padding: "2px 3px",
+                    marginLeft: "2px",
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = "red")}
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.color =
+                      theme === "dark" ? "white" : "#222")
+                  }
+                >
+                  🗑️
+                </button>
+              </div>
+            </div>
+
+            {/* Charts in Set */}
+            {!set.collapsed && (
+              <div style={{ paddingLeft: 15, marginTop: 5 }}>
+                {set.charts.map((chart, chartIdx) => (
+                  <div
+                    key={chartIdx}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: 3,
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      <button
+                        onClick={() => toggleChartCollapse(setIdx, chartIdx)}
+                        style={{
+                          fontSize: "12px",
+                          padding: "2px 6px",
+                          background: "transparent",
+                          border: "none",
+                          cursor: "pointer",
+                        }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.backgroundColor =
+                            theme === "dark" ? "#444" : "#eee")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.backgroundColor = "transparent")
+                        }
+                      >
+                        {chart.collapsed ? "▶" : "▼"}
+                      </button>
+                      <span
+                        onClick={() => {
+                          setActiveSetIndex(setIdx);
+                          setActiveChartIndex(chartIdx);
+                        }}
+                        style={{
+                          cursor: "pointer",
+                          marginLeft: 4,
+                          textDecoration:
+                            activeSetIndex === setIdx &&
+                            activeChartIndex === chartIdx
+                              ? "underline"
+                              : "none",
+                          padding: "2px 4px",
+                          borderRadius: "4px",
+                        }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.backgroundColor =
+                            theme === "dark" ? "#444" : "#eee")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.backgroundColor = "transparent")
+                        }
+                      >
+                        {chart.name}
+                      </span>
+                    </div>
+                    <div>
+                      <button
+                        onClick={() => renameChart(setIdx, chartIdx)}
+                        style={{
+                          fontSize: "12px",
+                          padding: "2px 6px",
+                          marginLeft: "2px",
+                          background: "transparent",
+                          border: "none",
+                          cursor: "pointer",
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = "orange")}
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.color =
+                            theme === "dark" ? "white" : "#222")
+                        }
+                      >
+                        ✎
+                      </button>
+                      <button
+                        onClick={() => deleteChart(setIdx, chartIdx)}
+                        style={{
+                          fontSize: "12px",
+                          padding: "2px 6px",
+                          marginLeft: "2px",
+                          background: "transparent",
+                          border: "none",
+                          cursor: "pointer",
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = "red")}
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.color =
+                            theme === "dark" ? "white" : "#222")
+                        }
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                <button
+                  onClick={() => addChartToSet(setIdx)}
+                  style={{
+                    marginTop: 3,
+                    fontSize: "12px",
+                    padding: "3px 6px",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor =
+                      theme === "dark" ? "#333" : "#ddd")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = "transparent")
+                  }
+                >
+                  + Add Chart
+                </button>
+              </div>
+            )}
           </div>
-        )}
+        ))}
       </div>
 
+      {/* Add Master Set */}
+      {sidebarOpen && (
+        <div
+          style={{
+            padding: 10,
+            borderTop: `1px solid ${theme === "dark" ? "#333" : "#aaa"}`,
+          }}
+        >
+          <button
+            onClick={addMasterSet}
+            style={{
+              fontSize: "12px",
+              padding: "3px 6px",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor =
+                theme === "dark" ? "#333" : "#ddd")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = "transparent")
+            }
+          >
+            + Add Master Set
+          </button>
+        </div>
+      )}
+    </div>
 
       {/* Main content */}
       <div
