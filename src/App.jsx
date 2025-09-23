@@ -217,8 +217,8 @@ function App() {
         tension: 0.3,
         fill: false,
         pointRadius: 5,
-        pointHoverRadius: 20,      // increase hover radius
-        pointHitRadius: 20,        // increase clickable area
+        pointHoverRadius: 50,      // increase hover radius
+        pointHitRadius: 50,        // increase clickable area
       },
       activeChart?.startDate &&
         activeChart?.goalDate && {
