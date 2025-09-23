@@ -53,6 +53,7 @@ function App() {
   const [activeChartIndex, setActiveChartIndex] = useState(0);
   const [newValue, setNewValue] = useState("");
   const [newDate, setNewDate] = useState("");
+  const [newNotes, setNewNotes] = useState("");
   const [hoveredPoint, setHoveredPoint] = useState(null);
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -64,6 +65,12 @@ function App() {
   const activeChart =
     masterSets[activeSetIndex]?.charts[activeChartIndex] || null;
 
+  // Set default date to today
+  useEffect(() => {
+    const today = new Date().toISOString().split("T")[0];
+    setNewDate(today);
+  }, []);
+
   useEffect(() => {
     localStorage.setItem("progressData", JSON.stringify(masterSets));
   }, [masterSets]);
@@ -72,41 +79,18 @@ function App() {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  // Drag handlers
-  const startDrag = (e) => {
-    setDragging(true);
-    e.preventDefault();
-  };
-
-  const onDrag = (e) => {
-    if (!dragging) return;
-    const newWidth = e.clientX;
-    if (newWidth >= 50 && newWidth <= 600) {
-      setSidebarWidth(newWidth);
-    }
-  };
-
-  const stopDrag = () => setDragging(false);
-
-  useEffect(() => {
-    window.addEventListener("mousemove", onDrag);
-    window.addEventListener("mouseup", stopDrag);
-    return () => {
-      window.removeEventListener("mousemove", onDrag);
-      window.removeEventListener("mouseup", stopDrag);
-    };
-  }, [dragging]);
-
   const addPoint = () => {
     if (!newValue || !newDate || !activeChart) return;
     const updated = [...masterSets];
     updated[activeSetIndex].charts[activeChartIndex].data.push({
       x: newDate,
       y: Number(newValue),
+      notes: newNotes,
     });
     setMasterSets(updated);
     setNewValue("");
-    setNewDate("");
+    setNewDate(new Date().toISOString().split("T")[0]);
+    setNewNotes("");
   };
 
   const removePoint = (index) => {
@@ -272,8 +256,23 @@ function App() {
   const sidebarStyles = theme === "dark" ? { background: "#111" } : { background: "#ddd" };
   const mainStyles = theme === "dark" ? { background: "#222" } : { background: "#fff" };
 
+  // Minimal button styles
   const btnSmall = { fontSize: "16px", padding: "2px 4px", marginLeft: "2px", background: "transparent", border: "none", cursor: "pointer" };
   const sidebarIconBtn = { fontSize: "16px", padding: "0", margin: "2px", background: "transparent", border: "none", cursor: "pointer", color: theme === "dark" ? "white" : "#222", lineHeight: 1 };
+
+  // Sidebar drag events
+  const onMouseDown = () => setDragging(true);
+  const onMouseMove = (e) => { if(dragging) setSidebarWidth(Math.max(150, e.clientX)); };
+  const onMouseUp = () => setDragging(false);
+
+  useEffect(() => {
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+  }, [dragging]);
 
   return (
     <div style={{ display: "flex", height: "100vh", width: "100vw", ...themeStyles }}>
@@ -282,21 +281,15 @@ function App() {
         style={{
           width: sidebarOpen ? sidebarWidth : 50,
           ...sidebarStyles,
+          transition: dragging ? "none" : "width 0.3s",
           display: "flex",
           flexDirection: "column",
           height: "100vh",
           overflow: "hidden",
           position: "relative",
-          transition: dragging ? "none" : "width 0.3s ease",
         }}
       >
-        {/* Toggle sidebar */}
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          style={{ marginBottom: 10, background: "transparent", border: "none", cursor: "pointer", fontSize: 24, color: theme === "dark" ? "white" : "#222" }}
-        >
-          ☰
-        </button>
+        <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ marginBottom: 10, background: "transparent", border: "none", cursor: "pointer", fontSize: 24, color: theme === "dark" ? "white" : "#222" }}>☰</button>
 
         {sidebarOpen && (
           <>
@@ -306,13 +299,7 @@ function App() {
             >
               Toggle {theme === "dark" ? "Light" : "Dark"}
             </button>
-            <input
-              type="text"
-              placeholder="Search sets..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ width: "90%", margin: "0 auto 10px", padding: "4px 6px", fontSize: "13px" }}
-            />
+            <input type="text" placeholder="Search sets..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ width: "90%", margin: "0 auto 10px", padding: "4px 6px", fontSize: "13px" }} />
           </>
         )}
 
@@ -321,52 +308,36 @@ function App() {
             <div key={setIdx} style={{ marginBottom: 10 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
-                  <button onClick={() => toggleSetCollapse(setIdx)} style={sidebarIconBtn}>
-                    {set.collapsed ? "▶" : "▼"}
-                  </button>
-                  <span
-                    onClick={() => { setActiveSetIndex(setIdx); setActiveChartIndex(0); }}
-                    style={{ marginLeft: 4, cursor: "pointer", fontWeight: activeSetIndex === setIdx ? "bold" : "normal" }}
-                  >
-                    {set.name}
-                  </span>
+                  <button onClick={() => toggleSetCollapse(setIdx)} style={sidebarIconBtn}>{set.collapsed ? "▶" : "▼"}</button>
+                  <span onClick={() => { setActiveSetIndex(setIdx); setActiveChartIndex(0); }} style={{ marginLeft: 4, cursor: "pointer", fontWeight: activeSetIndex === setIdx ? "bold" : "normal" }}>{set.name}</span>
                 </div>
                 <div>
                   <button onClick={() => renameMasterSet(setIdx)} style={sidebarIconBtn}>✎</button>
                   <button onClick={() => deleteMasterSet(setIdx)} style={sidebarIconBtn}>🗑️</button>
                 </div>
               </div>
-              {!set.collapsed && (
-                <div style={{ paddingLeft: 15, marginTop: 5 }}>
-                  {set.charts.map((chart, chartIdx) => (
-                    <div key={chartIdx} style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                      <div>
-                        <button onClick={() => toggleChartCollapse(setIdx, chartIdx)} style={sidebarIconBtn}>
-                          {chart.collapsed ? "▶" : "▼"}
-                        </button>
-                        <span
-                          onClick={() => { setActiveSetIndex(setIdx); setActiveChartIndex(chartIdx); }}
-                          style={{ marginLeft: 4, cursor: "pointer", textDecoration: activeSetIndex === setIdx && activeChartIndex === chartIdx ? "underline" : "none" }}
-                        >
-                          {chart.name}
-                        </span>
-                      </div>
-                      <div>
-                        <button onClick={() => renameChart(setIdx, chartIdx)} style={sidebarIconBtn}>✎</button>
-                        <button onClick={() => deleteChart(setIdx, chartIdx)} style={sidebarIconBtn}>🗑️</button>
-                      </div>
+              {!set.collapsed && <div style={{ paddingLeft: 15, marginTop: 5 }}>
+                {set.charts.map((chart, chartIdx) => (
+                  <div key={chartIdx} style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+                    <div>
+                      <button onClick={() => toggleChartCollapse(setIdx, chartIdx)} style={sidebarIconBtn}>{chart.collapsed ? "▶" : "▼"}</button>
+                      <span onClick={() => { setActiveSetIndex(setIdx); setActiveChartIndex(chartIdx); }} style={{ marginLeft: 4, cursor: "pointer", textDecoration: activeSetIndex === setIdx && activeChartIndex === chartIdx ? "underline" : "none" }}>{chart.name}</span>
                     </div>
-                  ))}
-                  <button
-                    onClick={() => addChartToSet(setIdx)}
-                    style={{ marginTop: 3, fontSize: "12px", padding: "3px 6px" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = theme === "dark" ? "#333" : "#ddd")}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-                  >
-                    + Add Chart
-                  </button>
-                </div>
-              )}
+                    <div>
+                      <button onClick={() => renameChart(setIdx, chartIdx)} style={sidebarIconBtn}>✎</button>
+                      <button onClick={() => deleteChart(setIdx, chartIdx)} style={sidebarIconBtn}>🗑️</button>
+                    </div>
+                  </div>
+                ))}
+                <button
+                  onClick={() => addChartToSet(setIdx)}
+                  style={{ marginTop: 3, fontSize: "12px", padding: "3px 6px" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = theme === "dark" ? "#333" : "#ddd")}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                >
+                  + Add Chart
+                </button>
+              </div>}
             </div>
           ))}
         </div>
@@ -384,140 +355,71 @@ function App() {
           </div>
         )}
 
-        {/* Drag handle */}
-        {sidebarOpen && (
-          <div
-            onMouseDown={startDrag}
-            style={{ position: "absolute", right: 0, top: 0, height: "100%", width: 5, cursor: "col-resize", zIndex: 10 }}
-          />
-        )}
+        {/* Draggable handle */}
+        {sidebarOpen && <div style={{ width: 5, cursor: "col-resize", position: "absolute", top: 0, right: 0, bottom: 0, zIndex: 10 }} onMouseDown={onMouseDown} />}
       </div>
 
       {/* Main Content */}
       <div style={{ flex: 1, padding: 20, display: "flex", flexDirection: "column", minHeight: 0, ...mainStyles }}>
         <h1 style={{ display: "flex", alignItems: "center" }}>
-          <img src="https://img.icons8.com/color/48/combo-chart--v1.png" alt="logo" style={{ marginRight: 10 }} />
-          Progress Monitor
+          <img src="https://img.icons8.com/color/48/combo-chart--v1.png" alt="logo" style={{ marginRight: 10 }} />Progress Monitor
         </h1>
-        {activeChart && (
-          <>
-            <div style={{ marginBottom: 10 }}>
-              <label>
-                Start Value:
-                <input
-                  type="number"
-                  value={activeChart.startValue}
-                  onChange={(e) => {
-                    const updated = [...masterSets];
-                    updated[activeSetIndex].charts[activeChartIndex].startValue = Number(e.target.value);
-                    setMasterSets(updated);
-                  }}
-                  style={{ margin: "0 5px", width: 60 }}
-                />
-              </label>
-              <label>
-                Start Date:
-                <input
-                  type="date"
-                  defaultValue={activeChart.startDate}
-                  onBlur={(e) => {
-                    const val = e.target.value;
-                    if (!val) return;
-                    const updated = [...masterSets];
-                    updated[activeSetIndex].charts[activeChartIndex].startDate = val;
-                    setMasterSets(updated);
-                  }}
-                  style={{ margin: "0 5px" }}
-                />
-              </label>
-            </div>
+        {activeChart && <>
+          <div style={{ marginBottom: 10 }}>
+            <label>Start Value: <input type="number" value={activeChart.startValue} onChange={(e) => { const updated = [...masterSets]; updated[activeSetIndex].charts[activeChartIndex].startValue = Number(e.target.value); setMasterSets(updated); }} style={{ margin: "0 5px", width: 60 }}/></label>
+            <label>Start Date: <input type="date" defaultValue={activeChart.startDate} onBlur={(e) => { const val = e.target.value; if(!val) return; const updated = [...masterSets]; updated[activeSetIndex].charts[activeChartIndex].startDate = val; setMasterSets(updated); }} style={{ margin: "0 5px" }}/></label>
+          </div>
+          <div style={{ marginBottom: 10 }}>
+            <label>Goal Value: <input type="number" value={activeChart.goalValue} onChange={(e) => { const updated = [...masterSets]; updated[activeSetIndex].charts[activeChartIndex].goalValue = Number(e.target.value); setMasterSets(updated); }} style={{ margin: "0 5px", width: 60 }}/></label>
+            <label>Goal Date: <input type="date" defaultValue={activeChart.goalDate} onBlur={(e) => { const val = e.target.value; if(!val) return; const updated = [...masterSets]; updated[activeSetIndex].charts[activeChartIndex].goalDate = val; setMasterSets(updated); }} style={{ margin: "0 5px" }}/></label>
+          </div>
 
-            <div style={{ marginBottom: 10 }}>
-              <label>
-                Goal Value:
-                <input
-                  type="number"
-                  value={activeChart.goalValue}
-                  onChange={(e) => {
-                    const updated = [...masterSets];
-                    updated[activeSetIndex].charts[activeChartIndex].goalValue = Number(e.target.value);
-                    setMasterSets(updated);
-                  }}
-                  style={{ margin: "0 5px", width: 60 }}
-                />
-              </label>
-              <label>
-                Goal Date:
-                <input
-                  type="date"
-                  defaultValue={activeChart.goalDate}
-                  onBlur={(e) => {
-                    const val = e.target.value;
-                    if (!val) return;
-                    const updated = [...masterSets];
-                    updated[activeSetIndex].charts[activeChartIndex].goalDate = val;
-                    setMasterSets(updated);
-                  }}
-                  style={{ margin: "0 5px" }}
-                />
-              </label>
-            </div>
+          {/* Add Data */}
+          <div style={{ marginBottom: 10, display: "flex", alignItems: "center", gap: "5px" }}>
+            <label>
+              Value:
+              <input type="number" value={newValue} onChange={(e) => setNewValue(e.target.value)} style={{ width: 60, marginLeft: 4 }} />
+            </label>
+            <label>
+              Date:
+              <input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} style={{ marginLeft: 4 }} />
+            </label>
+            <label>
+              Additional Notes:
+              <input type="text" value={newNotes} onChange={(e) => setNewNotes(e.target.value)} style={{ marginLeft: 4, flex: 1 }} placeholder="Optional notes..." />
+            </label>
+            <button onClick={addPoint} style={{ ...btnSmall }}>+ Add</button>
+          </div>
 
-            <div style={{ marginBottom: 10 }}>
-              <label>
-                Value:
-                <input type="number" value={newValue} onChange={(e) => setNewValue(e.target.value)} style={{ margin: "0 5px", width: 60 }} />
-              </label>
-              <label>
-                Date:
-                <input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} style={{ margin: "0 5px" }} />
-              </label>
-              <button onClick={addPoint} style={{ ...btnSmall, marginLeft: 5 }}>+ Add</button>
-            </div>
+          {/* Export / Import */}
+          <div style={{ marginBottom: 10 }}>
+            <button onClick={exportJSON} style={{ ...btnSmall, marginRight: 5 }}>Export</button>
+            <input type="file" accept=".json" onChange={importJSON} />
+          </div>
 
-            <div style={{ marginBottom: 10 }}>
-              <button onClick={exportJSON} style={{ ...btnSmall, marginRight: 5 }}>Export</button>
-              <input type="file" accept=".json" onChange={importJSON} />
-            </div>
+          {/* Chart */}
+          <div style={{ flex: 1, position: "relative", background: theme === "dark" ? "#111" : "#ddd", padding: 20, borderRadius: 8, minHeight: 0 }}>
+            <Line ref={chartRef} data={chartData} options={chartOptions} />
+            {hoveredPoint && <button onClick={() => removePoint(hoveredPoint.index)} style={{ position: "absolute", left: hoveredPoint.x, top: hoveredPoint.y - 20, transform: "translate(-50%, -100%)", background: "red", color: "white", border: "none", borderRadius: 4, padding: "2px 6px", cursor: "pointer", fontSize: 12 }}>✖</button>}
+          </div>
 
-            <div style={{ flex: 1, position: "relative", background: theme === "dark" ? "#111" : "#ddd", padding: 20, borderRadius: 8, minHeight: 0 }}>
-              <Line ref={chartRef} data={chartData} options={chartOptions} />
-              {hoveredPoint && (
-                <button
-                  onClick={() => removePoint(hoveredPoint.index)}
-                  style={{
-                    position: "absolute",
-                    left: hoveredPoint.x,
-                    top: hoveredPoint.y - 20,
-                    transform: "translate(-50%, -100%)",
-                    background: "red",
-                    color: "white",
-                    border: "none",
-                    borderRadius: 4,
-                    padding: "2px 6px",
-                    cursor: "pointer",
-                    fontSize: 12,
-                  }}
-                >
-                  ✖
-                </button>
-              )}
-            </div>
+          {/* Notes */}
+          <div style={{ marginTop: 10 }}>
+            <textarea value={activeChart.notes} onChange={(e) => { const updated = [...masterSets]; updated[activeSetIndex].charts[activeChartIndex].notes = e.target.value; setMasterSets(updated); }} placeholder="Add notes..." style={{ width: "100%", minHeight: 60, resize: "vertical", padding: 8 }}/>
+          </div>
 
-            <div style={{ marginTop: 10 }}>
-              <textarea
-                value={activeChart.notes}
-                onChange={(e) => {
-                  const updated = [...masterSets];
-                  updated[activeSetIndex].charts[activeChartIndex].notes = e.target.value;
-                  setMasterSets(updated);
-                }}
-                placeholder="Add notes..."
-                style={{ width: "100%", minHeight: 60, resize: "vertical", padding: 8 }}
-              />
-            </div>
-          </>
-        )}
+          {/* Log */}
+          <div style={{ marginTop: 20, maxHeight: 150, overflowY: "auto", background: theme === "dark" ? "#111" : "#ddd", padding: 10, borderRadius: 6 }}>
+            <strong>Log:</strong>
+            <ul style={{ margin: 0, paddingLeft: 20 }}>
+              {activeChart?.data.map((point, idx) => (
+                <li key={idx}>
+                  {point.x} - {point.y}{point.notes ? ` (${point.notes})` : ""}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </>}
       </div>
     </div>
   );
