@@ -247,6 +247,17 @@ function App() {
 
   // Minimal button style helper
   const btnSmall = { fontSize: "10px", padding: "2px 4px", marginLeft: "2px", background: "transparent", border: "none", cursor: "pointer" };
+// Minimal sidebar button style (icon only)
+const sidebarIconBtn = {
+  fontSize: "16px",
+  padding: "0",
+  margin: "2px",
+  background: "transparent",
+  border: "none",
+  cursor: "pointer",
+  color: theme === "dark" ? "white" : "#222",
+  lineHeight: 1,
+};
 
   return (
     <div style={{ display: "flex", height: "100vh", width: "100vw", ...themeStyles }}>
@@ -260,24 +271,24 @@ function App() {
             <div key={setIdx} style={{ marginBottom: 10 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
-                  <button onClick={() => toggleSetCollapse(setIdx)} style={btnSmall}>{set.collapsed ? "▶" : "▼"}</button>
+                  <button onClick={() => toggleSetCollapse(setIdx)} style={sidebarIconBtn}>{set.collapsed ? "▶" : "▼"}</button>
                   <span onClick={() => { setActiveSetIndex(setIdx); setActiveChartIndex(0); }} style={{ marginLeft: 4, cursor: "pointer", fontWeight: activeSetIndex === setIdx ? "bold" : "normal" }}>{set.name}</span>
                 </div>
                 <div>
-                  <button onClick={() => renameMasterSet(setIdx)} style={btnSmall}>✎</button>
-                  <button onClick={() => deleteMasterSet(setIdx)} style={btnSmall}>🗑️</button>
+                  <button onClick={() => renameMasterSet(setIdx)} style={sidebarIconBtn}>✎</button>
+                  <button onClick={() => deleteMasterSet(setIdx)} style={sidebarIconBtn}>🗑️</button>
                 </div>
               </div>
               {!set.collapsed && <div style={{ paddingLeft: 15, marginTop: 5 }}>
                 {set.charts.map((chart, chartIdx) => (
                   <div key={chartIdx} style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
                     <div>
-                      <button onClick={() => toggleChartCollapse(setIdx, chartIdx)} style={btnSmall}>{chart.collapsed ? "▶" : "▼"}</button>
+                      <button onClick={() => toggleChartCollapse(setIdx, chartIdx)} style={sidebarIconBtn}>{chart.collapsed ? "▶" : "▼"}</button>
                       <span onClick={() => { setActiveSetIndex(setIdx); setActiveChartIndex(chartIdx); }} style={{ marginLeft: 4, cursor: "pointer", textDecoration: activeSetIndex === setIdx && activeChartIndex === chartIdx ? "underline" : "none" }}>{chart.name}</span>
                     </div>
                     <div>
-                      <button onClick={() => renameChart(setIdx, chartIdx)} style={btnSmall}>✎</button>
-                      <button onClick={() => deleteChart(setIdx, chartIdx)} style={btnSmall}>🗑️</button>
+                      <button onClick={() => renameChart(setIdx, chartIdx)} style={sidebarIconBtn}>✎</button>
+                      <button onClick={() => deleteChart(setIdx, chartIdx)} style={sidebarIconBtn}>🗑️</button>
                     </div>
                   </div>
                 ))}
