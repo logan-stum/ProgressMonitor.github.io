@@ -199,36 +199,81 @@ function App() {
   );
 
   // Chart Data
-  const chartData = {
-    datasets: [
-      {
-        label: activeChart?.name || "Chart",
-        data: activeChart?.data || [],
-        borderColor: "blue",
-        backgroundColor: "rgba(0,0,255,0.3)",
-      },
-    ],
-  };
+const chartData = {
+  datasets: [
+    {
+      label: activeChart?.name || "Chart",
+      data: activeChart?.data || [],
+      borderColor: "blue",
+      backgroundColor: "rgba(0,0,255,0.3)",
+      tension: 0.2,
+    },
+    // Start Value (horizontal line)
+    activeChart?.startDate && {
+      label: "Start Value",
+      data: [
+        { x: activeChart.startDate, y: activeChart.startValue },
+        { x: activeChart.goalDate || new Date(), y: activeChart.startValue },
+      ],
+      borderColor: "green",
+      borderDash: [6, 6],
+      pointRadius: 0,
+    },
+    // Goal Value (horizontal line)
+    activeChart?.goalDate && {
+      label: "Goal Value",
+      data: [
+        { x: activeChart.startDate || new Date(), y: activeChart.goalValue },
+        { x: activeChart.goalDate, y: activeChart.goalValue },
+      ],
+      borderColor: "red",
+      borderDash: [6, 6],
+      pointRadius: 0,
+    },
+  ].filter(Boolean), // removes null datasets
+};
 
-  const chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: { position: "top" },
-      tooltip: { mode: "index", intersect: false },
+const chartOptions = {
+  responsive: true,
+  plugins: {
+    legend: { position: "top" },
+    tooltip: { mode: "index", intersect: false },
+  },
+  scales: {
+    x: {
+      type: "time",
+      time: {
+        unit: "day",
+        tooltipFormat: "yyyy-MM-dd",
+      },
+      title: {
+        display: true,
+        text: "Date",
+      },
     },
-    onHover: (event, elements) => {
-      if (elements.length) {
-        const el = elements[0];
-        setHoveredPoint({
-          x: el.element.x,
-          y: el.element.y,
-          index: el.index,
-        });
-      } else {
-        setHoveredPoint(null);
-      }
+    y: {
+      min: 0,
+      max: 100, // lock to your 0–100 scale
+      title: {
+        display: true,
+        text: "Value",
+      },
     },
-  };
+  },
+  onHover: (event, elements) => {
+    if (elements.length) {
+      const el = elements[0];
+      setHoveredPoint({
+        x: el.element.x,
+        y: el.element.y,
+        index: el.index,
+      });
+    } else {
+      setHoveredPoint(null);
+    }
+  },
+};
+
 
   // Theming
   const themeStyles =
