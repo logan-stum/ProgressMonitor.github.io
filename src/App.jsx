@@ -56,6 +56,8 @@ function App() {
   const [hoveredPoint, setHoveredPoint] = useState(null);
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarWidth, setSidebarWidth] = useState(300);
+  const [dragging, setDragging] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   const chartRef = useRef(null);
@@ -69,6 +71,31 @@ function App() {
   useEffect(() => {
     localStorage.setItem("theme", theme);
   }, [theme]);
+
+  // Drag handlers
+  const startDrag = (e) => {
+    setDragging(true);
+    e.preventDefault();
+  };
+
+  const onDrag = (e) => {
+    if (!dragging) return;
+    const newWidth = e.clientX;
+    if (newWidth >= 50 && newWidth <= 600) {
+      setSidebarWidth(newWidth);
+    }
+  };
+
+  const stopDrag = () => setDragging(false);
+
+  useEffect(() => {
+    window.addEventListener("mousemove", onDrag);
+    window.addEventListener("mouseup", stopDrag);
+    return () => {
+      window.removeEventListener("mousemove", onDrag);
+      window.removeEventListener("mouseup", stopDrag);
+    };
+  }, [dragging]);
 
   const addPoint = () => {
     if (!newValue || !newDate || !activeChart) return;
@@ -230,11 +257,7 @@ function App() {
       tooltip: { mode: "nearest", intersect: false },
     },
     scales: {
-      x: {
-        type: "time",
-        time: { unit: "day", tooltipFormat: "yyyy-MM-dd" },
-        title: { display: true, text: "Date" },
-      },
+      x: { type: "time", time: { unit: "day", tooltipFormat: "yyyy-MM-dd" }, title: { display: true, text: "Date" } },
       y: { min: 0, max: 100, title: { display: true, text: "Value" } },
     },
     onHover: (event, elements) => {
@@ -245,8 +268,7 @@ function App() {
     },
   };
 
-  const themeStyles =
-    theme === "dark" ? { background: "#222", color: "white" } : { background: "#eee", color: "#222" };
+  const themeStyles = theme === "dark" ? { background: "#222", color: "white" } : { background: "#eee", color: "#222" };
   const sidebarStyles = theme === "dark" ? { background: "#111" } : { background: "#ddd" };
   const mainStyles = theme === "dark" ? { background: "#222" } : { background: "#fff" };
 
@@ -255,69 +277,53 @@ function App() {
 
   return (
     <div style={{ display: "flex", height: "100vh", width: "100vw", ...themeStyles }}>
+      {/* Sidebar */}
       <div
         style={{
-          width: sidebarOpen ? 300 : 50, // full width when open, small width when closed
+          width: sidebarOpen ? sidebarWidth : 50,
           ...sidebarStyles,
           display: "flex",
           flexDirection: "column",
           height: "100vh",
           overflow: "hidden",
           position: "relative",
-          transition: "width 0.3s ease", // animate width
-          minWidth: 50, // prevents it from collapsing too far
+          transition: dragging ? "none" : "width 0.3s ease",
         }}
       >
-        {/* Hamburger button always visible */}
+        {/* Toggle sidebar */}
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          style={{
-            marginBottom: 10,
-            background: "transparent",
-            border: "none",
-            cursor: "pointer",
-            fontSize: 24,
-            color: theme === "dark" ? "white" : "#222",
-            zIndex: 2,
-          }}
+          style={{ marginBottom: 10, background: "transparent", border: "none", cursor: "pointer", fontSize: 24, color: theme === "dark" ? "white" : "#222" }}
         >
           ☰
         </button>
 
-        {/* Inner content: fade in/out */}
-        <div
-          style={{
-            flex: 1,
-            overflowY: "auto",
-            padding: 10,
-            opacity: sidebarOpen ? 1 : 0,
-            pointerEvents: sidebarOpen ? "auto" : "none",
-            transition: "opacity 0.3s ease",
-          }}
-        >
-          {/* Theme toggle */}
-          <button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            style={{ marginBottom: 10, background: "transparent", border: "none", cursor: "pointer", fontSize: 14, color: theme === "dark" ? "white" : "#222" }}
-          >
-            Toggle {theme === "dark" ? "Light" : "Dark"}
-          </button>
+        {sidebarOpen && (
+          <>
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              style={{ marginBottom: 10, background: "transparent", border: "none", cursor: "pointer", fontSize: 14, color: theme === "dark" ? "white" : "#222" }}
+            >
+              Toggle {theme === "dark" ? "Light" : "Dark"}
+            </button>
+            <input
+              type="text"
+              placeholder="Search sets..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ width: "90%", margin: "0 auto 10px", padding: "4px 6px", fontSize: "13px" }}
+            />
+          </>
+        )}
 
-          {/* Search */}
-          <input
-            type="text"
-            placeholder="Search sets..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ width: "90%", margin: "0 auto 10px", padding: "4px 6px", fontSize: "13px" }}
-          />
-
-          {/* Sets */}
+        <div style={{ flex: 1, overflowY: "auto", padding: 10 }}>
           {filteredSets.map((set, setIdx) => (
             <div key={setIdx} style={{ marginBottom: 10 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
-                  <button onClick={() => toggleSetCollapse(setIdx)} style={sidebarIconBtn}>{set.collapsed ? "▶" : "▼"}</button>
+                  <button onClick={() => toggleSetCollapse(setIdx)} style={sidebarIconBtn}>
+                    {set.collapsed ? "▶" : "▼"}
+                  </button>
                   <span
                     onClick={() => { setActiveSetIndex(setIdx); setActiveChartIndex(0); }}
                     style={{ marginLeft: 4, cursor: "pointer", fontWeight: activeSetIndex === setIdx ? "bold" : "normal" }}
@@ -335,7 +341,9 @@ function App() {
                   {set.charts.map((chart, chartIdx) => (
                     <div key={chartIdx} style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
                       <div>
-                        <button onClick={() => toggleChartCollapse(setIdx, chartIdx)} style={sidebarIconBtn}>{chart.collapsed ? "▶" : "▼"}</button>
+                        <button onClick={() => toggleChartCollapse(setIdx, chartIdx)} style={sidebarIconBtn}>
+                          {chart.collapsed ? "▶" : "▼"}
+                        </button>
                         <span
                           onClick={() => { setActiveSetIndex(setIdx); setActiveChartIndex(chartIdx); }}
                           style={{ marginLeft: 4, cursor: "pointer", textDecoration: activeSetIndex === setIdx && activeChartIndex === chartIdx ? "underline" : "none" }}
@@ -361,9 +369,10 @@ function App() {
               )}
             </div>
           ))}
+        </div>
 
-          {/* Add Master Set */}
-          <div style={{ paddingTop: 10, borderTop: `1px solid ${theme === "dark" ? "#333" : "#aaa"}` }}>
+        {sidebarOpen && (
+          <div style={{ padding: 10, borderTop: `1px solid ${theme === "dark" ? "#333" : "#aaa"}` }}>
             <button
               onClick={addMasterSet}
               style={{ fontSize: "12px", padding: "3px 6px" }}
@@ -373,7 +382,15 @@ function App() {
               + Add Master Set
             </button>
           </div>
-        </div>
+        )}
+
+        {/* Drag handle */}
+        {sidebarOpen && (
+          <div
+            onMouseDown={startDrag}
+            style={{ position: "absolute", right: 0, top: 0, height: "100%", width: 5, cursor: "col-resize", zIndex: 10 }}
+          />
+        )}
       </div>
 
       {/* Main Content */}
@@ -382,7 +399,6 @@ function App() {
           <img src="https://img.icons8.com/color/48/combo-chart--v1.png" alt="logo" style={{ marginRight: 10 }} />
           Progress Monitor
         </h1>
-
         {activeChart && (
           <>
             <div style={{ marginBottom: 10 }}>
@@ -391,7 +407,11 @@ function App() {
                 <input
                   type="number"
                   value={activeChart.startValue}
-                  onChange={(e) => { const updated = [...masterSets]; updated[activeSetIndex].charts[activeChartIndex].startValue = Number(e.target.value); setMasterSets(updated); }}
+                  onChange={(e) => {
+                    const updated = [...masterSets];
+                    updated[activeSetIndex].charts[activeChartIndex].startValue = Number(e.target.value);
+                    setMasterSets(updated);
+                  }}
                   style={{ margin: "0 5px", width: 60 }}
                 />
               </label>
@@ -400,7 +420,13 @@ function App() {
                 <input
                   type="date"
                   defaultValue={activeChart.startDate}
-                  onBlur={(e) => { const val = e.target.value; if(!val) return; const updated = [...masterSets]; updated[activeSetIndex].charts[activeChartIndex].startDate = val; setMasterSets(updated); }}
+                  onBlur={(e) => {
+                    const val = e.target.value;
+                    if (!val) return;
+                    const updated = [...masterSets];
+                    updated[activeSetIndex].charts[activeChartIndex].startDate = val;
+                    setMasterSets(updated);
+                  }}
                   style={{ margin: "0 5px" }}
                 />
               </label>
@@ -412,7 +438,11 @@ function App() {
                 <input
                   type="number"
                   value={activeChart.goalValue}
-                  onChange={(e) => { const updated = [...masterSets]; updated[activeSetIndex].charts[activeChartIndex].goalValue = Number(e.target.value); setMasterSets(updated); }}
+                  onChange={(e) => {
+                    const updated = [...masterSets];
+                    updated[activeSetIndex].charts[activeChartIndex].goalValue = Number(e.target.value);
+                    setMasterSets(updated);
+                  }}
                   style={{ margin: "0 5px", width: 60 }}
                 />
               </label>
@@ -421,7 +451,13 @@ function App() {
                 <input
                   type="date"
                   defaultValue={activeChart.goalDate}
-                  onBlur={(e) => { const val = e.target.value; if(!val) return; const updated = [...masterSets]; updated[activeSetIndex].charts[activeChartIndex].goalDate = val; setMasterSets(updated); }}
+                  onBlur={(e) => {
+                    const val = e.target.value;
+                    if (!val) return;
+                    const updated = [...masterSets];
+                    updated[activeSetIndex].charts[activeChartIndex].goalDate = val;
+                    setMasterSets(updated);
+                  }}
                   style={{ margin: "0 5px" }}
                 />
               </label>
@@ -449,7 +485,19 @@ function App() {
               {hoveredPoint && (
                 <button
                   onClick={() => removePoint(hoveredPoint.index)}
-                  style={{ position: "absolute", left: hoveredPoint.x, top: hoveredPoint.y - 20, transform: "translate(-50%, -100%)", background: "red", color: "white", border: "none", borderRadius: 4, padding: "2px 6px", cursor: "pointer", fontSize: 12 }}
+                  style={{
+                    position: "absolute",
+                    left: hoveredPoint.x,
+                    top: hoveredPoint.y - 20,
+                    transform: "translate(-50%, -100%)",
+                    background: "red",
+                    color: "white",
+                    border: "none",
+                    borderRadius: 4,
+                    padding: "2px 6px",
+                    cursor: "pointer",
+                    fontSize: 12,
+                  }}
                 >
                   ✖
                 </button>
@@ -459,7 +507,11 @@ function App() {
             <div style={{ marginTop: 10 }}>
               <textarea
                 value={activeChart.notes}
-                onChange={(e) => { const updated = [...masterSets]; updated[activeSetIndex].charts[activeChartIndex].notes = e.target.value; setMasterSets(updated); }}
+                onChange={(e) => {
+                  const updated = [...masterSets];
+                  updated[activeSetIndex].charts[activeChartIndex].notes = e.target.value;
+                  setMasterSets(updated);
+                }}
                 placeholder="Add notes..."
                 style={{ width: "100%", minHeight: 60, resize: "vertical", padding: 8 }}
               />
