@@ -408,7 +408,7 @@ function App() {
           {/* Chart */}
           <div style={{ flex: 1, position: "relative", background: theme === "dark" ? "#111" : "#ddd", padding: 20, borderRadius: 8, minHeight: 0 }}>
             <Line ref={chartRef} data={chartData} options={chartOptions} />
-            {hoveredPoint && <button onClick={() => removePoint(hoveredPoint.index)} style={{ position: "absolute", left: hoveredPoint.x, top: hoveredPoint.y - 5, transform: "translate(-50%, -100%)", background: "red", color: "white", border: "none", borderRadius: 4, padding: "2px 6px", cursor: "pointer", fontSize: 12 }}>✖</button>}
+            {hoveredPoint && <button onClick={() => removePoint(hoveredPoint.index)} style={{ position: "absolute", left: hoveredPoint.x, top: hoveredPoint.y - 5, transform: "translate(-50%, -50%)", background: "red", color: "white", border: "none", borderRadius: 4, padding: "2px 6px", cursor: "pointer", fontSize: 12 }}>✖</button>}
           </div>
 
           {/* Notes */}
