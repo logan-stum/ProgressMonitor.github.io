@@ -255,19 +255,20 @@ function App() {
 
   return (
     <div style={{ display: "flex", height: "100vh", width: "100vw", ...themeStyles }}>
-      {/* Sidebar container */}
-        <div
-          style={{
-            width: sidebarOpen ? 300 : 50,
-            ...sidebarStyles,
-            display: "flex",
-            flexDirection: "column",
-            height: "100vh",
-            overflow: "hidden",
-            position: "relative",
-          }}
-        >
-        {/* Hamburger toggle */}
+      <div
+        style={{
+          width: sidebarOpen ? 300 : 50, // full width when open, small width when closed
+          ...sidebarStyles,
+          display: "flex",
+          flexDirection: "column",
+          height: "100vh",
+          overflow: "hidden",
+          position: "relative",
+          transition: "width 0.3s ease", // animate width
+          minWidth: 50, // prevents it from collapsing too far
+        }}
+      >
+        {/* Hamburger button always visible */}
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           style={{
@@ -277,13 +278,13 @@ function App() {
             cursor: "pointer",
             fontSize: 24,
             color: theme === "dark" ? "white" : "#222",
-            zIndex: 2,           // make sure it’s always on top
+            zIndex: 2,
           }}
         >
           ☰
         </button>
 
-        {/* Inner content wrapper */}
+        {/* Inner content: fade in/out */}
         <div
           style={{
             flex: 1,
@@ -291,7 +292,7 @@ function App() {
             padding: 10,
             opacity: sidebarOpen ? 1 : 0,
             pointerEvents: sidebarOpen ? "auto" : "none",
-            transition: "opacity 0.3s",
+            transition: "opacity 0.3s ease",
           }}
         >
           {/* Theme toggle */}
