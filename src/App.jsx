@@ -548,14 +548,14 @@ function App() {
       <div
         style={{
           flex: 1,
-          padding: 20,
+          padding: 10,
           display: "flex",
           flexDirection: "column",
           minHeight: 0,
           ...mainStyles,
         }}
       >
-        <h1 style={{ display: "flex", alignItems: "center" }}>
+        <h1 style={{ display: "flex", alignItems: "center", fontSize: "20px"}}>
           <img
             src="https://img.icons8.com/color/48/combo-chart--v1.png"
             alt="logo"
@@ -653,8 +653,8 @@ function App() {
                 style={{
                   gridColumn: 4,
                   gridRow: "1 / span 3",
-                  width: "100%",
-                  height: "100%",
+                  width: "80%",
+                  height: "80%",
                   resize: "vertical",
                 }}
               />
@@ -665,12 +665,12 @@ function App() {
                 style={{
                   gridColumn: 5,
                   gridRow: 3,
-                  padding: "10px 16px",
+                  padding: "6px 10px",
                   fontWeight: "bold",
                   background: "#4cafef",
                   color: "white",
                   border: "none",
-                  borderRadius: 6,
+                  borderRadius: 4,
                   cursor: "pointer",
                 }}
                 title="Add data (resets date to today)"
@@ -690,12 +690,12 @@ function App() {
                 <button
                   onClick={exportJSON}
                   style={{
-                    padding: "8px 12px",
+                    padding: "6px 10px",
                     fontWeight: "bold",
                     background: "#4cafef",
                     color: "white",
                     border: "none",
-                    borderRadius: 6,
+                    borderRadius: 4,
                     cursor: "pointer",
                   }}
                 >
@@ -704,10 +704,10 @@ function App() {
                 <label
                   htmlFor="importFile"
                   style={{
-                    padding: "8px 12px",
+                    padding: "6px 10px",
                     background: "#4cafef",
                     color: "white",
-                    borderRadius: 6,
+                    borderRadius: 4,
                     cursor: "pointer",
                     fontWeight: "bold",
                   }}
@@ -728,7 +728,7 @@ function App() {
             <div
               style={{
                 flex: 1, // take remaining vertical space
-                minHeight: 300, // minimum height so it doesn't shrink too much
+                minHeight: 500, // minimum height so it doesn't shrink too much
                 position: "relative",
                 background: theme === "dark" ? "#111" : "#ddd",
                 padding: 18,
@@ -761,7 +761,7 @@ function App() {
                   setMasterSets(updated);
                 }}
                 placeholder="Add notes..."
-                style={{ width: "100%", minHeight: 60, resize: "vertical", padding: 8 }}
+                style={{ width: "100%", minHeight: 30, resize: "vertical", padding: 8 }}
               />
             </div>
 
