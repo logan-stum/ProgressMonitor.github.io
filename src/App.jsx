@@ -727,12 +727,14 @@ function App() {
             {/* Chart */}
             <div
               style={{
-                flex: 1,
+                flex: 1, // take remaining vertical space
+                minHeight: 300, // minimum height so it doesn't shrink too much
                 position: "relative",
                 background: theme === "dark" ? "#111" : "#ddd",
                 padding: 18,
                 borderRadius: 8,
-                minHeight: 0,
+                display: "flex",
+                flexDirection: "column",
               }}
             >
               <div
@@ -744,7 +746,9 @@ function App() {
               >
                 Tip: hold Ctrl and left-click a point to delete it.
               </div>
-              <Line ref={chartRef} data={chartData} options={chartOptions} />
+              <div style={{ flex: 1, minHeight: 200 }}>
+                <Line ref={chartRef} data={chartData} options={chartOptions} />
+              </div>
             </div>
 
             {/* Chart notes */}
@@ -771,7 +775,6 @@ function App() {
             {/* Log */}
             <div
               style={{
-                marginTop: 16,
                 maxHeight: 150,
                 overflowY: "auto",
                 background: theme === "dark" ? "#111" : "#ddd",
@@ -791,7 +794,6 @@ function App() {
           </>
         )}
       </div>
-
     </div>
   );
 }
