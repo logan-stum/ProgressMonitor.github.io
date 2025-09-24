@@ -32,11 +32,11 @@ function App() {
       ? JSON.parse(saved)
       : [
           {
-            name: "Default Set",
+            name: "Student",
             collapsed: false,
             charts: [
               {
-                name: "Chart 1",
+                name: "Goal 1",
                 collapsed: false,
                 startValue: 0,
                 startDate: "",
@@ -137,7 +137,7 @@ function App() {
   const addChartToSet = (setIdx) => {
     const updated = [...masterSets];
     updated[setIdx].charts.push({
-      name: `Chart ${updated[setIdx].charts.length + 1}`,
+      name: `Goal ${updated[setIdx].charts.length + 1}`,
       collapsed: false,
       startValue: 0,
       startDate: "",
@@ -186,7 +186,7 @@ function App() {
 
   const renameChart = (setIdx, chartIdx) => {
     const newName = prompt(
-      "Enter new chart name:",
+      "Enter new goal:",
       masterSets[setIdx].charts[chartIdx].name
     );
     if (!newName) return;
@@ -196,7 +196,7 @@ function App() {
   };
 
   const deleteChart = (setIdx, chartIdx) => {
-    if (!window.confirm("Delete this chart?")) return;
+    if (!window.confirm("Delete this goal?")) return;
     const updated = [...masterSets];
     updated[setIdx].charts.splice(chartIdx, 1);
     setMasterSets(updated);
@@ -291,7 +291,7 @@ function App() {
       y: {
         min: 0,
         max: 100,
-        title: { display: true, text: "Value" },
+        title: { display: true, text: "Accuracy" },
       },
     },
 
@@ -515,7 +515,7 @@ function App() {
                         cursor: "pointer",
                       }}
                     >
-                      + Add Chart
+                      + Add Goal
                     </button>
                   </div>
                 )}
@@ -530,7 +530,7 @@ function App() {
               onClick={addMasterSet}
               style={{ fontSize: "12px", padding: "3px 6px", background: "transparent", border: "none", cursor: "pointer" }}
             >
-              + Add Master Set
+              + Add Student
             </button>
           </div>
         )}
@@ -556,7 +556,7 @@ function App() {
             {/* Start / Goal */}
             <div style={{ marginBottom: 10 }}>
               <label>
-                Start Value:
+                Baseline:
                 <input
                   type="number"
                   value={activeChart.startValue}
@@ -588,7 +588,7 @@ function App() {
 
             <div style={{ marginBottom: 10 }}>
               <label>
-                Goal Value:
+                Goal:
                 <input
                   type="number"
                   value={activeChart.goalValue}
@@ -621,7 +621,7 @@ function App() {
             {/* Add Data row */}
             <div style={{ marginBottom: 10, display: "flex", alignItems: "center", gap: 8 }}>
               <label>
-                Value:
+                Accuracy:
                 <input type="number" value={newValue} onChange={(e) => setNewValue(e.target.value)} style={{ width: 80, marginLeft: 6 }} />
               </label>
 
@@ -640,9 +640,19 @@ function App() {
             {/* Export / Import */}
             <div style={{ marginBottom: 10 }}>
               <button onClick={exportJSON} style={{ ...btnSmall, marginRight: 8 }}>
-                Export
+                Export Data
               </button>
-              <input type="file" accept=".json" onChange={importJSON} />
+
+              <label htmlFor="importFile">
+                <button style={btnSmall}>Import Data</button>
+              </label>
+              <input
+                id="importFile"
+                type="file"
+                accept=".json"
+                onChange={importJSON}
+                style={{ display: "none" }}
+              />
             </div>
 
             {/* Chart */}
