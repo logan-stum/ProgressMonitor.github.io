@@ -127,7 +127,7 @@ function App() {
   const addMasterSet = () => {
     const updated = [
       ...masterSets,
-      { name: "New Set", collapsed: false, charts: [] },
+      { name: "Student", collapsed: false, charts: [] },
     ];
     setMasterSets(updated);
     setActiveSetIndex(updated.length - 1);
@@ -165,7 +165,7 @@ function App() {
   };
 
   const renameMasterSet = (setIdx) => {
-    const newName = prompt("Enter new set name:", masterSets[setIdx].name);
+    const newName = prompt("Enter student's name:", masterSets[setIdx].name);
     if (!newName) return;
     const updated = [...masterSets];
     updated[setIdx].name = newName;
@@ -545,32 +545,53 @@ function App() {
       </div>
 
       {/* Main Content */}
-      <div style={{ flex: 1, padding: 20, display: "flex", flexDirection: "column", minHeight: 0, ...mainStyles }}>
+      <div
+        style={{
+          flex: 1,
+          padding: 20,
+          display: "flex",
+          flexDirection: "column",
+          minHeight: 0,
+          ...mainStyles,
+        }}
+      >
         <h1 style={{ display: "flex", alignItems: "center" }}>
-          <img src="https://img.icons8.com/color/48/combo-chart--v1.png" alt="logo" style={{ marginRight: 10 }} />
+          <img
+            src="https://img.icons8.com/color/48/combo-chart--v1.png"
+            alt="logo"
+            style={{ marginRight: 10 }}
+          />
           Progress Monitor
         </h1>
 
         {activeChart && (
           <>
-            {/* Start / Goal */}
-            <div style={{ marginBottom: 10 }}>
-              <label>
-                Baseline:
+            {/* Baseline / Start Date */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                marginBottom: 10,
+                gap: 20,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", flex: 1 }}>
+                <label style={{ width: 100 }}>Baseline:</label>
                 <input
                   type="number"
                   value={activeChart.startValue}
                   onChange={(e) => {
                     const updated = [...masterSets];
-                    updated[activeSetIndex].charts[activeChartIndex].startValue = Number(e.target.value);
+                    updated[activeSetIndex].charts[activeChartIndex].startValue =
+                      Number(e.target.value);
                     setMasterSets(updated);
                   }}
-                  style={{ margin: "0 8px", width: 80 }}
+                  style={{ flex: 1, maxWidth: 120 }}
                 />
-              </label>
+              </div>
 
-              <label>
-                Start Date:
+              <div style={{ display: "flex", alignItems: "center", flex: 1 }}>
+                <label style={{ width: 100 }}>Start Date:</label>
                 <input
                   type="date"
                   defaultValue={activeChart.startDate}
@@ -581,28 +602,37 @@ function App() {
                     updated[activeSetIndex].charts[activeChartIndex].startDate = val;
                     setMasterSets(updated);
                   }}
-                  style={{ margin: "0 8px" }}
+                  style={{ flex: 1, maxWidth: 160 }}
                 />
-              </label>
+              </div>
             </div>
 
-            <div style={{ marginBottom: 10 }}>
-              <label>
-                Goal:
+            {/* Goal / Goal Date */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                marginBottom: 10,
+                gap: 20,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", flex: 1 }}>
+                <label style={{ width: 100 }}>Goal:</label>
                 <input
                   type="number"
                   value={activeChart.goalValue}
                   onChange={(e) => {
                     const updated = [...masterSets];
-                    updated[activeSetIndex].charts[activeChartIndex].goalValue = Number(e.target.value);
+                    updated[activeSetIndex].charts[activeChartIndex].goalValue =
+                      Number(e.target.value);
                     setMasterSets(updated);
                   }}
-                  style={{ margin: "0 8px", width: 80 }}
+                  style={{ flex: 1, maxWidth: 120 }}
                 />
-              </label>
+              </div>
 
-              <label>
-                Goal Date:
+              <div style={{ display: "flex", alignItems: "center", flex: 1 }}>
+                <label style={{ width: 100 }}>Goal Date:</label>
                 <input
                   type="date"
                   defaultValue={activeChart.goalDate}
@@ -613,30 +643,59 @@ function App() {
                     updated[activeSetIndex].charts[activeChartIndex].goalDate = val;
                     setMasterSets(updated);
                   }}
-                  style={{ margin: "0 8px" }}
+                  style={{ flex: 1, maxWidth: 160 }}
                 />
-              </label>
+              </div>
             </div>
 
-            {/* Add Data row */}
-            <div style={{ marginBottom: 10, display: "flex", alignItems: "center", gap: 8 }}>
-              <label>
-                Accuracy:
-                <input type="number" value={newValue} onChange={(e) => setNewValue(e.target.value)} style={{ width: 80, marginLeft: 6 }} />
-              </label>
+            {/* Add Data Row */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                marginBottom: 10,
+                gap: 20,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", flex: 1 }}>
+                <label style={{ width: 100 }}>Accuracy:</label>
+                <input
+                  type="number"
+                  value={newValue}
+                  onChange={(e) => setNewValue(e.target.value)}
+                  style={{ flex: 1, maxWidth: 120 }}
+                />
+              </div>
 
-              <label>
-                Date:
-                <input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} style={{ marginLeft: 6 }} />
-              </label>
+              <div style={{ display: "flex", alignItems: "center", flex: 1 }}>
+                <label style={{ width: 100 }}>Date:</label>
+                <input
+                  type="date"
+                  value={newDate}
+                  onChange={(e) => setNewDate(e.target.value)}
+                  style={{ flex: 1, maxWidth: 160 }}
+                />
+              </div>
 
-              <label>Additional Notes: <input type="text" value={newNotes} onChange={(e) => setNewNotes(e.target.value)} style={{ marginLeft: 4, flex: 1 }} placeholder="Optional notes..." /></label>
+              <div style={{ display: "flex", alignItems: "center", flex: 2 }}>
+                <label style={{ width: 120 }}>Notes:</label>
+                <input
+                  type="text"
+                  value={newNotes}
+                  onChange={(e) => setNewNotes(e.target.value)}
+                  style={{ flex: 1 }}
+                  placeholder="Optional notes..."
+                />
+              </div>
 
-              <button onClick={addPoint} style={btnSmall} title="Add data (resets date to today)">
+              <button
+                onClick={addPoint}
+                style={btnSmall}
+                title="Add data (resets date to today)"
+              >
                 + Add
               </button>
             </div>
-
             {/* Export / Import */}
             <div style={{ marginBottom: 10 }}>
               <button onClick={exportJSON} style={{ ...btnSmall, marginRight: 8 }}>
