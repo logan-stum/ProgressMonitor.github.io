@@ -653,8 +653,8 @@ function App() {
                 style={{
                   gridColumn: 4,
                   gridRow: "1 / span 3",
-                  width: "80%",
-                  height: "80%",
+                  width: "100%",
+                  height: "90%",
                   resize: "vertical",
                 }}
               />
@@ -728,7 +728,7 @@ function App() {
             <div
               style={{
                 flex: 1, // take remaining vertical space
-                minHeight: 500, // minimum height so it doesn't shrink too much
+                minHeight: 400, // minimum height so it doesn't shrink too much
                 position: "relative",
                 background: theme === "dark" ? "#111" : "#ddd",
                 padding: 18,
@@ -766,7 +766,7 @@ function App() {
             </div>
 
             {/* Undo button */}
-            <div style={{ marginBottom: 10, marginTop: 10 }}>
+            <div style={{ marginBottom: 6, marginTop: 6 }}>
               <button onClick={undo} style={btnSmall} disabled={history.length === 0}>
                 Undo
               </button>
