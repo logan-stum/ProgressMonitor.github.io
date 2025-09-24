@@ -630,10 +630,7 @@ function App() {
                 <input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} style={{ marginLeft: 6 }} />
               </label>
 
-              <label style={{ flex: 1 }}>
-                Additional notes:
-                <input type="text" value={newNotes} onChange={(e) => setNewNotes(e.target.value)} placeholder="Optional notes..." style={{ marginLeft: 6, width: "100%" }} />
-              </label>
+              <label>Additional Notes: <input type="text" value={newNotes} onChange={(e) => setNewNotes(e.target.value)} style={{ marginLeft: 4, flex: 1 }} placeholder="Optional notes..." /></label>
 
               <button onClick={addPoint} style={btnSmall} title="Add data (resets date to today)">
                 + Add
@@ -651,7 +648,7 @@ function App() {
             {/* Chart */}
             <div style={{ flex: 1, position: "relative", background: theme === "dark" ? "#111" : "#ddd", padding: 18, borderRadius: 8, minHeight: 0 }}>
               <div style={{ fontSize: 12, marginBottom: 6, color: theme === "dark" ? "#ddd" : "#333" }}>
-                Tip: hold <strong>Ctrl</strong> (Windows/Linux) or <strong>⌘</strong> (Mac) and left-click a point to delete it.
+                Tip: hold Ctrl and left-click a point to delete it.
               </div>
 
               <Line ref={chartRef} data={chartData} options={chartOptions} />
