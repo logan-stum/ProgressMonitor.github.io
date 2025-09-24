@@ -566,160 +566,184 @@ function App() {
 
         {activeChart && (
           <>
-            {/* Baseline / Start Date */}
+            {/* Inputs Grid */}
             <div
               style={{
-                display: "flex",
+                display: "grid",
+                gridTemplateColumns: "100px 120px 160px 1fr 140px",
+                gap: "8px 12px",
                 alignItems: "center",
-                marginBottom: 10,
-                gap: 20,
+                marginBottom: 20,
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", flex: 1 }}>
-                <label style={{ width: 100 }}>Baseline:</label>
-                <input
-                  type="number"
-                  value={activeChart.startValue}
-                  onChange={(e) => {
-                    const updated = [...masterSets];
-                    updated[activeSetIndex].charts[activeChartIndex].startValue =
-                      Number(e.target.value);
-                    setMasterSets(updated);
-                  }}
-                  style={{ flex: 1, maxWidth: 120 }}
-                />
-              </div>
+              {/* Baseline / Start Date */}
+              <label style={{ gridColumn: 1 }}>Baseline:</label>
+              <input
+                type="number"
+                value={activeChart.startValue}
+                onChange={(e) => {
+                  const updated = [...masterSets];
+                  updated[activeSetIndex].charts[activeChartIndex].startValue = Number(
+                    e.target.value
+                  );
+                  setMasterSets(updated);
+                }}
+                style={{ gridColumn: 2, width: "100%" }}
+              />
+              <input
+                type="date"
+                defaultValue={activeChart.startDate}
+                onBlur={(e) => {
+                  const val = e.target.value;
+                  if (!val) return;
+                  const updated = [...masterSets];
+                  updated[activeSetIndex].charts[activeChartIndex].startDate = val;
+                  setMasterSets(updated);
+                }}
+                style={{ gridColumn: 3, width: "100%" }}
+              />
 
-              <div style={{ display: "flex", alignItems: "center", flex: 1 }}>
-                <label style={{ width: 100 }}>Start Date:</label>
-                <input
-                  type="date"
-                  defaultValue={activeChart.startDate}
-                  onBlur={(e) => {
-                    const val = e.target.value;
-                    if (!val) return;
-                    const updated = [...masterSets];
-                    updated[activeSetIndex].charts[activeChartIndex].startDate = val;
-                    setMasterSets(updated);
-                  }}
-                  style={{ flex: 1, maxWidth: 160 }}
-                />
-              </div>
-            </div>
+              {/* Goal / Goal Date */}
+              <label style={{ gridColumn: 1 }}>Goal:</label>
+              <input
+                type="number"
+                value={activeChart.goalValue}
+                onChange={(e) => {
+                  const updated = [...masterSets];
+                  updated[activeSetIndex].charts[activeChartIndex].goalValue = Number(
+                    e.target.value
+                  );
+                  setMasterSets(updated);
+                }}
+                style={{ gridColumn: 2, width: "100%" }}
+              />
+              <input
+                type="date"
+                defaultValue={activeChart.goalDate}
+                onBlur={(e) => {
+                  const val = e.target.value;
+                  if (!val) return;
+                  const updated = [...masterSets];
+                  updated[activeSetIndex].charts[activeChartIndex].goalDate = val;
+                  setMasterSets(updated);
+                }}
+                style={{ gridColumn: 3, width: "100%" }}
+              />
 
-            {/* Goal / Goal Date */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                marginBottom: 10,
-                gap: 20,
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", flex: 1 }}>
-                <label style={{ width: 100 }}>Goal:</label>
-                <input
-                  type="number"
-                  value={activeChart.goalValue}
-                  onChange={(e) => {
-                    const updated = [...masterSets];
-                    updated[activeSetIndex].charts[activeChartIndex].goalValue =
-                      Number(e.target.value);
-                    setMasterSets(updated);
-                  }}
-                  style={{ flex: 1, maxWidth: 120 }}
-                />
-              </div>
+              {/* Accuracy / Date / Notes */}
+              <label style={{ gridColumn: 1 }}>Accuracy:</label>
+              <input
+                type="number"
+                value={newValue}
+                onChange={(e) => setNewValue(e.target.value)}
+                style={{ gridColumn: 2, width: "100%" }}
+              />
+              <input
+                type="date"
+                value={newDate}
+                onChange={(e) => setNewDate(e.target.value)}
+                style={{ gridColumn: 3, width: "100%" }}
+              />
 
-              <div style={{ display: "flex", alignItems: "center", flex: 1 }}>
-                <label style={{ width: 100 }}>Goal Date:</label>
-                <input
-                  type="date"
-                  defaultValue={activeChart.goalDate}
-                  onBlur={(e) => {
-                    const val = e.target.value;
-                    if (!val) return;
-                    const updated = [...masterSets];
-                    updated[activeSetIndex].charts[activeChartIndex].goalDate = val;
-                    setMasterSets(updated);
-                  }}
-                  style={{ flex: 1, maxWidth: 160 }}
-                />
-              </div>
-            </div>
+              {/* Notes textarea spanning rows */}
+              <textarea
+                value={newNotes}
+                onChange={(e) => setNewNotes(e.target.value)}
+                placeholder="Additional notes..."
+                style={{
+                  gridColumn: 4,
+                  gridRow: "1 / span 3",
+                  width: "100%",
+                  height: "100%",
+                  resize: "vertical",
+                }}
+              />
 
-            {/* Add Data Row */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                marginBottom: 10,
-                gap: 20,
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", flex: 1 }}>
-                <label style={{ width: 100 }}>Accuracy:</label>
-                <input
-                  type="number"
-                  value={newValue}
-                  onChange={(e) => setNewValue(e.target.value)}
-                  style={{ flex: 1, maxWidth: 120 }}
-                />
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", flex: 1 }}>
-                <label style={{ width: 100 }}>Date:</label>
-                <input
-                  type="date"
-                  value={newDate}
-                  onChange={(e) => setNewDate(e.target.value)}
-                  style={{ flex: 1, maxWidth: 160 }}
-                />
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", flex: 2 }}>
-                <label style={{ width: 120 }}>Notes:</label>
-                <input
-                  type="text"
-                  value={newNotes}
-                  onChange={(e) => setNewNotes(e.target.value)}
-                  style={{ flex: 1 }}
-                  placeholder="Optional notes..."
-                />
-              </div>
-
+              {/* Add Data Button */}
               <button
                 onClick={addPoint}
-                style={btnSmall}
+                style={{
+                  gridColumn: 5,
+                  gridRow: 3,
+                  padding: "10px 16px",
+                  fontWeight: "bold",
+                  background: "#4cafef",
+                  color: "white",
+                  border: "none",
+                  borderRadius: 6,
+                  cursor: "pointer",
+                }}
                 title="Add data (resets date to today)"
               >
-                + Add
-              </button>
-            </div>
-            {/* Export / Import */}
-            <div style={{ marginBottom: 10 }}>
-              <button onClick={exportJSON} style={{ ...btnSmall, marginRight: 8 }}>
-                Export Data
+                + Add Data
               </button>
 
-              <label htmlFor="importFile">
-                <button style={btnSmall}>Import Data</button>
-              </label>
-              <input
-                id="importFile"
-                type="file"
-                accept=".json"
-                onChange={importJSON}
-                style={{ display: "none" }}
-              />
+              {/* Export / Import */}
+              <div
+                style={{
+                  gridColumn: "1 / 4",
+                  display: "flex",
+                  gap: 8,
+                  alignItems: "center",
+                }}
+              >
+                <button
+                  onClick={exportJSON}
+                  style={{
+                    padding: "8px 12px",
+                    fontWeight: "bold",
+                    background: "#4cafef",
+                    color: "white",
+                    border: "none",
+                    borderRadius: 6,
+                    cursor: "pointer",
+                  }}
+                >
+                  Export Data
+                </button>
+                <label
+                  htmlFor="importFile"
+                  style={{
+                    padding: "8px 12px",
+                    background: "#4cafef",
+                    color: "white",
+                    borderRadius: 6,
+                    cursor: "pointer",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Import Data
+                </label>
+                <input
+                  id="importFile"
+                  type="file"
+                  accept=".json"
+                  onChange={importJSON}
+                  style={{ display: "none" }}
+                />
+              </div>
             </div>
 
             {/* Chart */}
-            <div style={{ flex: 1, position: "relative", background: theme === "dark" ? "#111" : "#ddd", padding: 18, borderRadius: 8, minHeight: 0 }}>
-              <div style={{ fontSize: 12, marginBottom: 6, color: theme === "dark" ? "#ddd" : "#333" }}>
+            <div
+              style={{
+                flex: 1,
+                position: "relative",
+                background: theme === "dark" ? "#111" : "#ddd",
+                padding: 18,
+                borderRadius: 8,
+                minHeight: 0,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 12,
+                  marginBottom: 6,
+                  color: theme === "dark" ? "#ddd" : "#333",
+                }}
+              >
                 Tip: hold Ctrl and left-click a point to delete it.
               </div>
-
               <Line ref={chartRef} data={chartData} options={chartOptions} />
             </div>
 
@@ -736,14 +760,25 @@ function App() {
                 style={{ width: "100%", minHeight: 60, resize: "vertical", padding: 8 }}
               />
             </div>
-            <div style={{ marginBottom: 10 }}>
+
+            {/* Undo button */}
+            <div style={{ marginBottom: 10, marginTop: 10 }}>
               <button onClick={undo} style={btnSmall} disabled={history.length === 0}>
                 Undo
               </button>
             </div>
 
             {/* Log */}
-            <div style={{ marginTop: 16, maxHeight: 150, overflowY: "auto", background: theme === "dark" ? "#111" : "#ddd", padding: 10, borderRadius: 6 }}>
+            <div
+              style={{
+                marginTop: 16,
+                maxHeight: 150,
+                overflowY: "auto",
+                background: theme === "dark" ? "#111" : "#ddd",
+                padding: 10,
+                borderRadius: 6,
+              }}
+            >
               <strong>Log:</strong>
               <ul style={{ margin: 6, paddingLeft: 18 }}>
                 {activeChart?.data.map((point, idx) => (
@@ -756,6 +791,7 @@ function App() {
           </>
         )}
       </div>
+
     </div>
   );
 }
