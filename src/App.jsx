@@ -576,60 +576,56 @@ function App() {
                 marginBottom: 20,
               }}
             >
-              {/* Baseline / Start Date */}
               <label style={{ gridColumn: 1 }}>Baseline:</label>
-              <input
-                type="number"
-                value={activeChart.startValue}
-                onChange={(e) => {
-                  const updated = [...masterSets];
-                  updated[activeSetIndex].charts[activeChartIndex].startValue = Number(
-                    e.target.value
-                  );
-                  setMasterSets(updated);
-                }}
-                style={{ gridColumn: 2, width: "100%" }}
-              />
-              <input
-                type="date"
-                defaultValue={activeChart.startDate}
-                onBlur={(e) => {
-                  const val = e.target.value;
-                  if (!val) return;
-                  const updated = [...masterSets];
-                  updated[activeSetIndex].charts[activeChartIndex].startDate = val;
-                  setMasterSets(updated);
-                }}
-                style={{ gridColumn: 3, width: "100%" }}
-              />
+            <input
+              type="number"
+              value={activeChart.startValue}
+              onChange={(e) => {
+                const updated = [...masterSets];
+                updated[activeSetIndex].charts[activeChartIndex].startValue = Number(
+                  e.target.value
+                );
+                setMasterSets(updated);
+              }}
+              style={{ gridColumn: 2, width: "100%" }}
+            />
+            <input
+              type="date"
+              value={activeChart.startDate || ""}
+              onChange={(e) => {
+                const val = e.target.value;
+                const updated = [...masterSets];
+                updated[activeSetIndex].charts[activeChartIndex].startDate = val;
+                setMasterSets(updated);
+              }}
+              style={{ gridColumn: 3, width: "100%" }}
+            />
 
-              {/* Goal / Goal Date */}
-              <label style={{ gridColumn: 1 }}>Goal:</label>
-              <input
-                type="number"
-                value={activeChart.goalValue}
-                onChange={(e) => {
-                  const updated = [...masterSets];
-                  updated[activeSetIndex].charts[activeChartIndex].goalValue = Number(
-                    e.target.value
-                  );
-                  setMasterSets(updated);
-                }}
-                style={{ gridColumn: 2, width: "100%" }}
-              />
-              <input
-                type="date"
-                defaultValue={activeChart.goalDate}
-                onBlur={(e) => {
-                  const val = e.target.value;
-                  if (!val) return;
-                  const updated = [...masterSets];
-                  updated[activeSetIndex].charts[activeChartIndex].goalDate = val;
-                  setMasterSets(updated);
-                }}
-                style={{ gridColumn: 3, width: "100%" }}
-              />
-
+            {/* Goal / Goal Date */}
+            <label style={{ gridColumn: 1 }}>Goal:</label>
+            <input
+              type="number"
+              value={activeChart.goalValue}
+              onChange={(e) => {
+                const updated = [...masterSets];
+                updated[activeSetIndex].charts[activeChartIndex].goalValue = Number(
+                  e.target.value
+                );
+                setMasterSets(updated);
+              }}
+              style={{ gridColumn: 2, width: "100%" }}
+            />
+            <input
+              type="date"
+              value={activeChart.goalDate || ""}
+              onChange={(e) => {
+                const val = e.target.value;
+                const updated = [...masterSets];
+                updated[activeSetIndex].charts[activeChartIndex].goalDate = val;
+                setMasterSets(updated);
+              }}
+              style={{ gridColumn: 3, width: "100%" }}
+            />
               {/* Accuracy / Date / Notes */}
               <label style={{ gridColumn: 1 }}>Accuracy:</label>
               <input
