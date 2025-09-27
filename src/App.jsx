@@ -44,7 +44,6 @@ function App() {
                 goalDate: "",
                 data: [],
                 notes: "",
-                files: [], // make sure we initialize files here too
               },
             ],
           },
@@ -58,14 +57,13 @@ function App() {
   const [newNotes, setNewNotes] = useState("");
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [sidebarWidth, setSidebarWidth] = useState(300);
+  const [sidebarWidth, setSidebarWidth] = useState(300); // adjustable
   const [dragging, setDragging] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [history, setHistory] = useState([]);
 
-  const [showAttachments, setShowAttachments] = useState(false);
-
   const chartRef = useRef(null);
+
   const activeChart =
     masterSets[activeSetIndex]?.charts[activeChartIndex] || null;
 
@@ -592,187 +590,158 @@ function App() {
         {activeChart && (
           <>
             {/* Inputs Grid */}
-<div
-  style={{
-    display: "grid",
-    gridTemplateColumns: "120px 1fr 1fr 1fr auto", // label, value, date, notes, button
-    rowGap: 12,
-    columnGap: 12,
-    alignItems: "center",
-    marginBottom: 20,
-  }}
->
-  {/* Baseline Row */}
-  <label style={{ gridColumn: 1 }}>Baseline:</label>
-  <input
-    type="number"
-    value={activeChart.startValue}
-    onChange={(e) => {
-      const updated = [...masterSets];
-      updated[activeSetIndex].charts[activeChartIndex].startValue = Number(
-        e.target.value
-      );
-      setMasterSets(updated);
-    }}
-    style={{ gridColumn: 2, width: "100%" }}
-  />
-  <input
-    type="date"
-    value={activeChart.startDate}
-    onChange={(e) => {
-      const updated = [...masterSets];
-      updated[activeSetIndex].charts[activeChartIndex].startDate = e.target.value;
-      setMasterSets(updated);
-    }}
-    style={{ gridColumn: 3, width: "100%" }}
-  />
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "100px 120px 160px 1fr 140px",
+                gap: "8px 12px",
+                alignItems: "center",
+                marginBottom: 20,
+              }}
+            >
+              <label style={{ gridColumn: 1 }}>Baseline:</label>
+            <input
+              type="number"
+              value={activeChart.startValue}
+              onChange={(e) => {
+                const updated = [...masterSets];
+                updated[activeSetIndex].charts[activeChartIndex].startValue = Number(
+                  e.target.value
+                );
+                setMasterSets(updated);
+              }}
+              style={{ gridColumn: 2, width: "100%" }}
+            />
+            <input
+              type="date"
+              value={activeChart.startDate || ""}
+              onChange={(e) => {
+                const val = e.target.value;
+                const updated = [...masterSets];
+                updated[activeSetIndex].charts[activeChartIndex].startDate = val;
+                setMasterSets(updated);
+              }}
+              style={{ gridColumn: 3, width: "100%" }}
+            />
 
-  {/* Goal Row */}
-  <label style={{ gridColumn: 1 }}>Goal:</label>
-  <input
-    type="number"
-    value={activeChart.goalValue}
-    onChange={(e) => {
-      const updated = [...masterSets];
-      updated[activeSetIndex].charts[activeChartIndex].goalValue = Number(
-        e.target.value
-      );
-      setMasterSets(updated);
-    }}
-    style={{ gridColumn: 2, width: "100%" }}
-  />
-  <input
-    type="date"
-    value={activeChart.goalDate}
-    onChange={(e) => {
-      const updated = [...masterSets];
-      updated[activeSetIndex].charts[activeChartIndex].goalDate = e.target.value;
-      setMasterSets(updated);
-    }}
-    style={{ gridColumn: 3, width: "100%" }}
-  />
+            {/* Goal / Goal Date */}
+            <label style={{ gridColumn: 1 }}>Goal:</label>
+            <input
+              type="number"
+              value={activeChart.goalValue}
+              onChange={(e) => {
+                const updated = [...masterSets];
+                updated[activeSetIndex].charts[activeChartIndex].goalValue = Number(
+                  e.target.value
+                );
+                setMasterSets(updated);
+              }}
+              style={{ gridColumn: 2, width: "100%" }}
+            />
+            <input
+              type="date"
+              value={activeChart.goalDate || ""}
+              onChange={(e) => {
+                const val = e.target.value;
+                const updated = [...masterSets];
+                updated[activeSetIndex].charts[activeChartIndex].goalDate = val;
+                setMasterSets(updated);
+              }}
+              style={{ gridColumn: 3, width: "100%" }}
+            />
+              {/* Accuracy / Date / Notes */}
+              <label style={{ gridColumn: 1 }}>Accuracy:</label>
+              <input
+                type="number"
+                value={newValue}
+                onChange={(e) => setNewValue(e.target.value)}
+                style={{ gridColumn: 2, width: "100%" }}
+              />
+              <input
+                type="date"
+                value={newDate}
+                onChange={(e) => setNewDate(e.target.value)}
+                style={{ gridColumn: 3, width: "100%" }}
+              />
 
-  {/* Add Data Row */}
-  <label style={{ gridColumn: 1 }}>Accuracy:</label>
-  <input
-    type="number"
-    value={newValue}
-    onChange={(e) => setNewValue(e.target.value)}
-    style={{ gridColumn: 2, width: "100%" }}
-  />
-  <input
-    type="date"
-    value={newDate}
-    onChange={(e) => setNewDate(e.target.value)}
-    style={{ gridColumn: 3, width: "100%" }}
-  />
-  <textarea
-    value={newNotes}
-    onChange={(e) => setNewNotes(e.target.value)}
-    placeholder="Optional notes..."
-    style={{ gridColumn: 4, height: "100%", resize: "vertical" }}
-  />
-  <button
-    onClick={addPoint}
-    style={{ gridColumn: 5, height: "100%" }}
-  >
-    + Add
-  </button>
+              {/* Notes textarea spanning rows */}
+              <textarea
+                value={newNotes}
+                onChange={(e) => setNewNotes(e.target.value)}
+                placeholder="Additional notes..."
+                style={{
+                  gridColumn: 4,
+                  gridRow: "1 / span 3",
+                  width: "100%",
+                  height: "90%",
+                  resize: "vertical",
+                }}
+              />
 
-  {/* Export / Import Row */}
-  <label style={{ gridColumn: 1 }}>Export:</label>
-  <button
-    onClick={exportJSON}
-    style={{ gridColumn: 2, width: "100%" }}
-  >
-    Export Data
-  </button>
-  <label style={{ gridColumn: 1 }}>Import:</label>
-  <label htmlFor="importFile" style={{ gridColumn: 3, width: "100%" }}>
-    <button style={{ width: "100%" }}>Import Data</button>
-  </label>
-  <input
-    id="importFile"
-    type="file"
-    accept=".json"
-    onChange={importJSON}
-    style={{ display: "none" }}
-  />
-</div>
+              {/* Add Data Button */}
+              <button
+                onClick={addPoint}
+                style={{
+                  gridColumn: 5,
+                  gridRow: 3,
+                  padding: "6px 10px",
+                  fontWeight: "bold",
+                  background: "#4cafef",
+                  color: "white",
+                  border: "none",
+                  borderRadius: 4,
+                  cursor: "pointer",
+                }}
+                title="Add data (resets date to today)"
+              >
+                + Add Data
+              </button>
 
-
-            {/* Attachments Modal */}
-            {showAttachments && (
+              {/* Export / Import */}
               <div
                 style={{
-                  position: "fixed",
-                  top: 0,
-                  left: 0,
-                  width: "100vw",
-                  height: "100vh",
-                  background: "rgba(0,0,0,0.5)",
+                  gridColumn: "1 / 4",
                   display: "flex",
+                  gap: 8,
                   alignItems: "center",
-                  justifyContent: "center",
-                  zIndex: 1000,
                 }}
-                onClick={() => setShowAttachments(false)}
               >
-                <div
+                <button
+                  onClick={exportJSON}
                   style={{
-                    background: "#fff",
-                    padding: 20,
-                    borderRadius: 8,
-                    minWidth: 300,
-                    maxHeight: "60vh",
-                    overflowY: "auto",
+                    padding: "6px 10px",
+                    fontWeight: "bold",
+                    background: "#4cafef",
+                    color: "white",
+                    border: "none",
+                    borderRadius: 4,
+                    cursor: "pointer",
                   }}
-                  onClick={(e) => e.stopPropagation()}
                 >
-                  <h3>Attachments</h3>
-                  <input
-                    type="file"
-                    multiple
-                    onChange={(e) => {
-                      const files = Array.from(e.target.files);
-                      const updated = [...masterSets];
-                      updated[activeSetIndex].charts[activeChartIndex].files = [
-                        ...(updated[activeSetIndex].charts[activeChartIndex].files || []),
-                        ...files,
-                      ];
-                      setMasterSets(updated);
-                    }}
-                  />
-                  {activeChart?.files?.length > 0 ? (
-                    <ul style={{ marginTop: 10, paddingLeft: 18 }}>
-                      {activeChart.files.map((file, idx) => (
-                        <li key={idx}>
-                          <a href={URL.createObjectURL(file)} download={file.name}>
-                            {file.name}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p style={{ marginTop: 10 }}>No files uploaded yet.</p>
-                  )}
-                  <button
-                    style={{
-                      padding: "6px 12px",
-                      borderRadius: 6,
-                      background: "#e74c3c",
-                      color: "#fff",
-                      border: "none",
-                      cursor: "pointer",
-                      marginTop: 12,
-                    }}
-                    onClick={() => setShowAttachments(false)}
-                  >
-                    Close
-                  </button>
-                </div>
+                  Export Data
+                </button>
+                <label
+                  htmlFor="importFile"
+                  style={{
+                    padding: "6px 10px",
+                    background: "#4cafef",
+                    color: "white",
+                    borderRadius: 4,
+                    cursor: "pointer",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Import Data
+                </label>
+                <input
+                  id="importFile"
+                  type="file"
+                  accept=".json"
+                  onChange={importJSON}
+                  style={{ display: "none" }}
+                />
               </div>
-            )}
+            </div>
 
             {/* Chart */}
             <div
@@ -840,6 +809,7 @@ function App() {
               ))}
             </ul>
           </div>
+
           </>
         )}
       </div>
