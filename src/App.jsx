@@ -35,17 +35,18 @@ function App() {
             name: "Student",
             collapsed: false,
             charts: [
-              {
-                name: "Goal 1",
-                collapsed: false,
-                startValue: 0,
-                startDate: "",
-                goalValue: 100,
-                goalDate: "",
-                data: [],
-                notes: "",
-              },
-            ],
+            {
+              name: "Goal 1",
+              collapsed: false,
+              startValue: 0,
+              startDate: "",
+              goalValue: 100,
+              goalDate: "",
+              data: [],
+              notes: "",
+              attachments: [], // <-- add this
+            },
+          ],
           },
         ];
   });
