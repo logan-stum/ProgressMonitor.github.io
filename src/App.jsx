@@ -164,7 +164,7 @@ function App() {
   const addChartToSet = (setIdx) => {
     const updated = [...masterSets];
     updated[setIdx].charts.push({
-      name: `Goal 1`,
+      name: `Goal ${updated[setIdx].charts.length + 1}`,
       startValue: 0,
       startDate: "",
       goalValue: 100,
