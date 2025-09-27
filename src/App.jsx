@@ -164,19 +164,20 @@ function App() {
   const addChartToSet = (setIdx) => {
     const updated = [...masterSets];
     updated[setIdx].charts.push({
-      name: `Goal ${updated[setIdx].charts.length + 1}`,
-      collapsed: false,
+      name: `Goal 1`,
       startValue: 0,
       startDate: "",
       goalValue: 100,
       goalDate: "",
       data: [],
       notes: "",
+      attachments: [], // important!
     });
     setMasterSets(updated);
     setActiveSetIndex(setIdx);
     setActiveChartIndex(updated[setIdx].charts.length - 1);
   };
+
 
   const toggleSetCollapse = (setIdx) => {
     const updated = [...masterSets];
@@ -852,10 +853,16 @@ function App() {
               zIndex: 1000,
             }}
           >
-            <div style={{ background: "white", padding: 20, borderRadius: 6, minWidth: 300 }}>
+            <div style={{
+              background: theme === "dark" ? "#222" : "white",
+              color: theme === "dark" ? "white" : "#222",
+              padding: 20,
+              borderRadius: 6,
+              minWidth: 300
+            }}>
               <h3>Attachments</h3>
 
-              {/* File upload */}
+              {/* Upload */}
               <input
                 type="file"
                 onChange={(e) => {
@@ -875,27 +882,19 @@ function App() {
                     setMasterSets(updated);
                   };
                   reader.readAsDataURL(file);
-
-                  // Clear input so same file can be uploaded again if needed
                   e.target.value = "";
                 }}
                 style={{ marginBottom: 10 }}
               />
 
-              {/* List existing attachments */}
-              {(activeChart.attachments || []).length === 0 && <p>No attachments</p>}
+              {/* List */}
+              {activeChart.attachments.length === 0 && <p>No attachments</p>}
               <ul>
-                {(activeChart.attachments || []).map((file, idx) => (
+                {activeChart.attachments.map((file, idx) => (
                   <li key={idx}>
                     {file.name} ({Math.round(file.size / 1024)} KB)
                     <button
-                      onClick={() => {
-                        const blob = new Blob([Uint8Array.from(atob(file.content), c => c.charCodeAt(0))], { type: file.type });
-                        const a = document.createElement("a");
-                        a.href = URL.createObjectURL(blob);
-                        a.download = file.name;
-                        a.click();
-                      }}
+                      onClick={() => downloadAttachment(file)}
                       style={{ marginLeft: 8 }}
                     >
                       Download
@@ -910,6 +909,7 @@ function App() {
             </div>
           </div>
         )}
+
         </>
         )}
       </div>
