@@ -44,6 +44,7 @@ function App() {
                 goalDate: "",
                 data: [],
                 notes: "",
+                files: [], // make sure we initialize files here too
               },
             ],
           },
@@ -57,12 +58,15 @@ function App() {
   const [newNotes, setNewNotes] = useState("");
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [sidebarWidth, setSidebarWidth] = useState(300); // adjustable
+  const [sidebarWidth, setSidebarWidth] = useState(300);
   const [dragging, setDragging] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [history, setHistory] = useState([]);
 
+  const [showAttachments, setShowAttachments] = useState(false);
+
   const chartRef = useRef(null);
+
 
   const activeChart =
     masterSets[activeSetIndex]?.charts[activeChartIndex] || null;
