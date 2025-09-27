@@ -124,6 +124,31 @@ function App() {
     setMasterSets(updated);
   };
 
+  const addAttachment = (file) => {
+    if (!activeChart || !file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target.result.split(",")[1]; // remove data: prefix
+      const updated = [...masterSets];
+      updated[activeSetIndex].charts[activeChartIndex].attachments.push({
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        content
+      });
+      setMasterSets(updated);
+    };
+    reader.readAsDataURL(file); // convert to Base64
+  };
+
+  const downloadAttachment = (file) => {
+    const blob = new Blob([Uint8Array.from(atob(file.content), c => c.charCodeAt(0))], { type: file.type });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = file.name;
+    a.click();
+  };
 
   const addMasterSet = () => {
     const updated = [
@@ -138,14 +163,14 @@ function App() {
   const addChartToSet = (setIdx) => {
     const updated = [...masterSets];
     updated[setIdx].charts.push({
-      name: `Goal ${updated[setIdx].charts.length + 1}`,
-      collapsed: false,
+      name: `Goal 1`,
       startValue: 0,
       startDate: "",
       goalValue: 100,
       goalDate: "",
       data: [],
       notes: "",
+      attachments: [] // new property
     });
     setMasterSets(updated);
     setActiveSetIndex(setIdx);
@@ -207,16 +232,12 @@ function App() {
 
   // ---- Import/Export ----
   const exportJSON = () => {
-    const blob = new Blob([JSON.stringify(masterSets, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
+    const blob = new Blob([JSON.stringify(masterSets, null, 2)], { type: "application/json" });
     const a = document.createElement("a");
-    a.href = url;
+    a.href = URL.createObjectURL(blob);
     a.download = "progress-data.json";
     a.click();
   };
-
   const importJSON = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -224,11 +245,7 @@ function App() {
     reader.onload = (event) => {
       try {
         const imported = JSON.parse(event.target.result);
-        // Basic validation (array of sets with charts)
-        if (
-          Array.isArray(imported) &&
-          imported.every((s) => s.name && Array.isArray(s.charts))
-        ) {
+        if (Array.isArray(imported) && imported.every(s => s.name && Array.isArray(s.charts))) {
           setMasterSets(imported);
           setActiveSetIndex(0);
           setActiveChartIndex(0);
@@ -820,69 +837,25 @@ function App() {
             </ul>
           </div>
           {showAttachments && (
-            <div
-              style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                width: "100vw",
-                height: "100vh",
-                background: "rgba(0,0,0,0.5)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: 1000,
-              }}
-              onClick={() => setShowAttachments(false)} // close on backdrop click
-            >
-              <div
-                style={{
-                  background: "#fff",
-                  padding: 20,
-                  borderRadius: 8,
-                  minWidth: 300,
-                  maxHeight: "60vh",
-                  overflowY: "auto",
-                }}
-                onClick={(e) => e.stopPropagation()} // prevent closing on content click
-              >
+            <div style={{
+              position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+              background: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000
+            }}>
+              <div style={{ background: "white", padding: 20, borderRadius: 6, minWidth: 300 }}>
                 <h3>Attachments</h3>
-                <input
-                  type="file"
-                  multiple
-                  onChange={(e) => {
-                    const files = Array.from(e.target.files);
-                    const updated = [...masterSets];
-                    updated[activeSetIndex].charts[activeChartIndex].files = [
-                      ...(updated[activeSetIndex].charts[activeChartIndex].files || []),
-                      ...files,
-                    ];
-                    setMasterSets(updated);
-                  }}
-                />
-                {activeChart?.files?.length > 0 ? (
-                  <ul style={{ marginTop: 10, paddingLeft: 18 }}>
-                    {activeChart.files.map((file, idx) => (
-                      <li key={idx}>
-                        <a href={URL.createObjectURL(file)} download={file.name}>
-                          {file.name}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p style={{ marginTop: 10 }}>No files uploaded yet.</p>
-                )}
-                <button
-                  style={{ ...btnSmall, marginTop: 12 }}
-                  onClick={() => setShowAttachments(false)}
-                >
-                  Close
-                </button>
+                {activeChart.attachments.length === 0 && <p>No attachments</p>}
+                <ul>
+                  {activeChart.attachments.map((file, idx) => (
+                    <li key={idx}>
+                      {file.name} ({Math.round(file.size/1024)} KB)
+                      <button onClick={() => downloadAttachment(file)} style={{ marginLeft: 8 }}>Download</button>
+                    </li>
+                  ))}
+                </ul>
+                <button onClick={() => setShowAttachments(false)} style={{ marginTop: 10 }}>Close</button>
               </div>
             </div>
           )}
-
           </>
         )}
       </div>
