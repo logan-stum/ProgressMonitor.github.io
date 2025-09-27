@@ -61,6 +61,7 @@ function App() {
   const [dragging, setDragging] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [history, setHistory] = useState([]);
+  const [showAttachments, setShowAttachments] = useState(false);
 
   const chartRef = useRef(null);
 
@@ -677,7 +678,16 @@ function App() {
                   resize: "vertical",
                 }}
               />
-
+              {/* Attachments Button Row */}
+              <label style={{ gridColumn: 1 }}>Attachments:</label>
+              <div style={{ gridColumn: "2 / span 2" }}>
+                <button
+                  style={{ ...btnSmall, background: "#4a90e2", color: "#fff" }}
+                  onClick={() => setShowAttachments(true)}
+                >
+                  Show Attachments
+                </button>
+              </div>
               {/* Add Data Button */}
               <button
                 onClick={addPoint}
@@ -809,6 +819,69 @@ function App() {
               ))}
             </ul>
           </div>
+          {showAttachments && (
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100vw",
+                height: "100vh",
+                background: "rgba(0,0,0,0.5)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 1000,
+              }}
+              onClick={() => setShowAttachments(false)} // close on backdrop click
+            >
+              <div
+                style={{
+                  background: "#fff",
+                  padding: 20,
+                  borderRadius: 8,
+                  minWidth: 300,
+                  maxHeight: "60vh",
+                  overflowY: "auto",
+                }}
+                onClick={(e) => e.stopPropagation()} // prevent closing on content click
+              >
+                <h3>Attachments</h3>
+                <input
+                  type="file"
+                  multiple
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files);
+                    const updated = [...masterSets];
+                    updated[activeSetIndex].charts[activeChartIndex].files = [
+                      ...(updated[activeSetIndex].charts[activeChartIndex].files || []),
+                      ...files,
+                    ];
+                    setMasterSets(updated);
+                  }}
+                />
+                {activeChart?.files?.length > 0 ? (
+                  <ul style={{ marginTop: 10, paddingLeft: 18 }}>
+                    {activeChart.files.map((file, idx) => (
+                      <li key={idx}>
+                        <a href={URL.createObjectURL(file)} download={file.name}>
+                          {file.name}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p style={{ marginTop: 10 }}>No files uploaded yet.</p>
+                )}
+                <button
+                  style={{ ...btnSmall, marginTop: 12 }}
+                  onClick={() => setShowAttachments(false)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
 
           </>
         )}
