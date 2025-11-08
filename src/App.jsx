@@ -1,5 +1,3 @@
-Here’s the complete App.js:
-
 import React, { useState, useRef, useEffect } from "react";
 import "chartjs-adapter-date-fns";
 import { Line } from "react-chartjs-2";
