@@ -1,3 +1,5 @@
+Here’s the complete App.js:
+
 import React, { useState, useRef, useEffect } from "react";
 import "chartjs-adapter-date-fns";
 import { Line } from "react-chartjs-2";
@@ -44,7 +46,7 @@ function App() {
                 goalDate: "",
                 data: [],
                 notes: "",
-                attachments: [], // <-- add this
+                attachments: [],
               },
             ],
           },
@@ -58,20 +60,19 @@ function App() {
   const [newNotes, setNewNotes] = useState("");
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [sidebarWidth, setSidebarWidth] = useState(300); // adjustable
+  const [sidebarWidth, setSidebarWidth] = useState(300);
   const [dragging, setDragging] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [history, setHistory] = useState([]);
   const [showAttachments, setShowAttachments] = useState(false);
+  const [editingPoint, setEditingPoint] = useState(null);
 
   const chartRef = useRef(null);
-
   const activeChart =
     masterSets[activeSetIndex]?.charts[activeChartIndex] || null;
 
   // ---- Effects: defaults / localStorage ----
   useEffect(() => {
-    // default newDate to today
     const today = new Date().toISOString().split("T")[0];
     setNewDate(today);
   }, []);
@@ -84,7 +85,6 @@ function App() {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  // ---- Utilities ----
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
   const sanitizeAndSortData = (dataArr) =>
     (Array.isArray(dataArr) ? dataArr : [])
@@ -96,21 +96,15 @@ function App() {
     if (!newValue || !newDate || !activeChart) return;
     saveHistory();
     const updated = [...masterSets];
-
-    // clamp value to 0-100 and ensure number type
     const clamped = clamp(Number(newValue), 0, 100);
-
     updated[activeSetIndex].charts[activeChartIndex].data.push({
       x: newDate,
       y: clamped,
       notes: newNotes,
     });
-
-    // sort data by date (ascending) so chart lines and log are chronological
     updated[activeSetIndex].charts[activeChartIndex].data = sanitizeAndSortData(
       updated[activeSetIndex].charts[activeChartIndex].data
     );
-
     setMasterSets(updated);
     setNewValue("");
     setNewDate(new Date().toISOString().split("T")[0]);
@@ -120,7 +114,7 @@ function App() {
   const saveHistory = () => {
     setHistory((prev) => {
       const newHist = [...prev, JSON.stringify(masterSets)];
-      if (newHist.length > 20) newHist.shift(); // limit history to 20
+      if (newHist.length > 20) newHist.shift();
       return newHist;
     });
   };
@@ -132,13 +126,12 @@ function App() {
     setMasterSets(JSON.parse(prev));
   };
 
-  // Updated removePoint signature: accept setIdx, chartIdx, index
+
   const removePoint = (setIdx, chartIdx, index) => {
     saveHistory();
     const updated = [...masterSets];
     if (!updated[setIdx] || !updated[setIdx].charts[chartIdx]) return;
     updated[setIdx].charts[chartIdx].data.splice(index, 1);
-    // ensure remaining data remains sanitized & sorted
     updated[setIdx].charts[chartIdx].data = sanitizeAndSortData(
       updated[setIdx].charts[chartIdx].data
     );
@@ -307,6 +300,31 @@ function App() {
     set.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const startEditPoint = (idx) => {
+    const point = activeChart.data[idx];
+    setEditingPoint({
+      index: idx,
+      x: point.x,
+      y: point.y,
+      notes: point.notes || "",
+    });
+  };
+  const saveEditedPoint = () => {
+    if (!editingPoint) return;
+    saveHistory();
+    const updated = [...masterSets];
+    updated[activeSetIndex].charts[activeChartIndex].data[editingPoint.index] = {
+      x: editingPoint.x,
+      y: clamp(Number(editingPoint.y), 0, 100),
+      notes: editingPoint.notes,
+    };
+    updated[activeSetIndex].charts[activeChartIndex].data = sanitizeAndSortData(
+      updated[activeSetIndex].charts[activeChartIndex].data
+    );
+    setMasterSets(updated);
+    setEditingPoint(null);
+  };
+
   // ---- Chart data & options ----
   const chartData = {
     datasets: [
@@ -319,7 +337,7 @@ function App() {
         fill: false,
         pointRadius: 6,
         pointHoverRadius: 8,
-        pointHitRadius: 10, // larger hit area for clicks
+        pointHitRadius: 10,
       },
       activeChart?.startDate &&
         activeChart?.goalDate && {
@@ -339,35 +357,18 @@ function App() {
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: {
-      legend: { position: "top" },
-      tooltip: { mode: "nearest", intersect: false },
-    },
+    plugins: { legend: { position: "top" }, tooltip: { mode: "nearest", intersect: false } },
     scales: {
-      x: {
-        type: "time",
-        time: { unit: "day", tooltipFormat: "yyyy-MM-dd" },
-        title: { display: true, text: "Date" },
-      },
-      y: {
-        min: 0,
-        max: 100,
-        title: { display: true, text: "Accuracy" },
-      },
+      x: { type: "time", time: { unit: "day", tooltipFormat: "yyyy-MM-dd" }, title: { display: true, text: "Date" } },
+      y: { min: 0, max: 100, title: { display: true, text: "Accuracy" } },
     },
-
-    // IMPORTANT: Ctrl/Cmd + left click deletes a point
     onClick: (evt, elements) => {
-      // elements is an array of active elements at click location
-      // evt.native is a PointerEvent in react-chartjs-2 v4
-      const isMeta = evt?.native?.metaKey; // cmd on mac
+      const isMeta = evt?.native?.metaKey;
       const isCtrl = evt?.native?.ctrlKey;
       const shouldDelete = isCtrl || isMeta;
       if (!shouldDelete) return;
-
       if (elements && elements.length && activeChart) {
         const pointIndex = elements[0].index;
-        // confirm then delete
         const point = activeChart.data[pointIndex];
         if (!point) return;
         if (
@@ -861,24 +862,41 @@ function App() {
               </button>
             </div>
 
-            {/* Log */}
-            <div
-              style={{
-                background: theme === "dark" ? "#111" : "#ddd",
-                padding: 10,
-                borderRadius: 6,
-                marginBottom: 20,
-              }}
-            >
+            {/* Log with Edit buttons */}
+            <div style={{ background: theme === "dark" ? "#111" : "#ddd", padding: 10, borderRadius: 6, marginBottom: 20 }}>
               <strong>Log:</strong>
               <ul style={{ margin: 6, paddingLeft: 18 }}>
                 {activeChart?.data.map((point, idx) => (
                   <li key={idx}>
                     {point.x} - {point.y}%{point.notes ? ` (${point.notes})` : ""}
+                    <button style={{ marginLeft: 6 }} onClick={() => startEditPoint(idx)}>Edit</button>
                   </li>
                 ))}
               </ul>
             </div>
+
+            {/* Edit Point Modal */}
+            {editingPoint && (
+              <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000 }}>
+                <div style={{ background: theme === "dark" ? "#222" : "white", color: theme === "dark" ? "white" : "#222", padding: 20, borderRadius: 6, minWidth: 300 }}>
+                  <h3>Edit Point</h3>
+                  <label>
+                    Date: <input type="date" value={editingPoint.x} onChange={(e) => setEditingPoint({ ...editingPoint, x: e.target.value })} />
+                  </label>
+                  <br />
+                  <label>
+                    Value: <input type="number" value={editingPoint.y} onChange={(e) => setEditingPoint({ ...editingPoint, y: e.target.value })} />
+                  </label>
+                  <br />
+                  <label>
+                    Notes: <textarea value={editingPoint.notes} onChange={(e) => setEditingPoint({ ...editingPoint, notes: e.target.value })} />
+                  </label>
+                  <br />
+                  <button onClick={saveEditedPoint}>Save</button>
+                  <button onClick={() => setEditingPoint(null)}>Cancel</button>
+                </div>
+              </div>
+            )}
             {showAttachments && (
               <div
                 style={{
