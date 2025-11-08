@@ -12,7 +12,6 @@ import {
   Legend,
   TimeScale,
 } from "chart.js";
-import zoomPlugin from "chartjs-plugin-zoom"; // ✅ ESM-compatible import
 
 ChartJS.register(
   CategoryScale,
@@ -22,8 +21,7 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  TimeScale,
-  zoomPlugin // ✅ register zoom plugin
+  TimeScale
 );
 
 function App() {
@@ -46,12 +44,13 @@ function App() {
                 goalDate: "",
                 data: [],
                 notes: "",
-                attachments: [],
+                attachments: [], // <-- add this
               },
             ],
           },
         ];
   });
+
   const [activeSetIndex, setActiveSetIndex] = useState(0);
   const [activeChartIndex, setActiveChartIndex] = useState(0);
   const [newValue, setNewValue] = useState("");
@@ -59,17 +58,20 @@ function App() {
   const [newNotes, setNewNotes] = useState("");
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [sidebarWidth, setSidebarWidth] = useState(300);
+  const [sidebarWidth, setSidebarWidth] = useState(300); // adjustable
   const [dragging, setDragging] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [history, setHistory] = useState([]);
   const [showAttachments, setShowAttachments] = useState(false);
+
   const chartRef = useRef(null);
 
-  const activeChart = masterSets[activeSetIndex]?.charts[activeChartIndex] || null;
+  const activeChart =
+    masterSets[activeSetIndex]?.charts[activeChartIndex] || null;
 
-  // ---- Effects ----
+  // ---- Effects: defaults / localStorage ----
   useEffect(() => {
+    // default newDate to today
     const today = new Date().toISOString().split("T")[0];
     setNewDate(today);
   }, []);
@@ -84,16 +86,41 @@ function App() {
 
   // ---- Utilities ----
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
-
   const sanitizeAndSortData = (dataArr) =>
     (Array.isArray(dataArr) ? dataArr : [])
       .map((p) => ({ ...p, y: clamp(Number(p.y), 0, 100) }))
       .sort((a, b) => new Date(a.x).getTime() - new Date(b.x).getTime());
 
+  // ---- CRUD for sets / charts / points ----
+  const addPoint = () => {
+    if (!newValue || !newDate || !activeChart) return;
+    saveHistory();
+    const updated = [...masterSets];
+
+    // clamp value to 0-100 and ensure number type
+    const clamped = clamp(Number(newValue), 0, 100);
+
+    updated[activeSetIndex].charts[activeChartIndex].data.push({
+      x: newDate,
+      y: clamped,
+      notes: newNotes,
+    });
+
+    // sort data by date (ascending) so chart lines and log are chronological
+    updated[activeSetIndex].charts[activeChartIndex].data = sanitizeAndSortData(
+      updated[activeSetIndex].charts[activeChartIndex].data
+    );
+
+    setMasterSets(updated);
+    setNewValue("");
+    setNewDate(new Date().toISOString().split("T")[0]);
+    setNewNotes("");
+  };
+
   const saveHistory = () => {
     setHistory((prev) => {
       const newHist = [...prev, JSON.stringify(masterSets)];
-      if (newHist.length > 20) newHist.shift();
+      if (newHist.length > 20) newHist.shift(); // limit history to 20
       return newHist;
     });
   };
@@ -105,54 +132,180 @@ function App() {
     setMasterSets(JSON.parse(prev));
   };
 
-  const addPoint = () => {
-    if (!newValue || !newDate || !activeChart) return;
-    saveHistory();
-    const updated = [...masterSets];
-    const clamped = clamp(Number(newValue), 0, 100);
-    updated[activeSetIndex].charts[activeChartIndex].data.push({
-      x: newDate,
-      y: clamped,
-      notes: newNotes,
-    });
-    updated[activeSetIndex].charts[activeChartIndex].data =
-      sanitizeAndSortData(updated[activeSetIndex].charts[activeChartIndex].data);
-    setMasterSets(updated);
-    setNewValue("");
-    setNewDate(new Date().toISOString().split("T")[0]);
-    setNewNotes("");
-  };
-
+  // Updated removePoint signature: accept setIdx, chartIdx, index
   const removePoint = (setIdx, chartIdx, index) => {
     saveHistory();
     const updated = [...masterSets];
     if (!updated[setIdx] || !updated[setIdx].charts[chartIdx]) return;
     updated[setIdx].charts[chartIdx].data.splice(index, 1);
+    // ensure remaining data remains sanitized & sorted
     updated[setIdx].charts[chartIdx].data = sanitizeAndSortData(
       updated[setIdx].charts[chartIdx].data
     );
     setMasterSets(updated);
   };
 
-  const editPoint = (setIdx, chartIdx, index) => {
-    const point = masterSets[setIdx].charts[chartIdx].data[index];
-    if (!point) return;
-    const newY = prompt("Edit value (0-100):", point.y);
-    const newX = prompt("Edit date (YYYY-MM-DD):", point.x);
-    const newNotes = prompt("Edit notes:", point.notes || "");
-    if (newY == null || newX == null) return;
-    saveHistory();
-    const updated = [...masterSets];
-    updated[setIdx].charts[chartIdx].data[index] = {
-      x: newX,
-      y: clamp(Number(newY), 0, 100),
-      notes: newNotes,
+  const addAttachment = (file) => {
+    if (!activeChart || !file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target.result.split(",")[1]; // remove data: prefix
+      const updated = [...masterSets];
+      // ensure attachments array exists
+      if (!Array.isArray(updated[activeSetIndex].charts[activeChartIndex].attachments)) {
+        updated[activeSetIndex].charts[activeChartIndex].attachments = [];
+      }
+      updated[activeSetIndex].charts[activeChartIndex].attachments.push({
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        content,
+      });
+      setMasterSets(updated);
     };
-    updated[setIdx].charts[chartIdx].data = sanitizeAndSortData(
-      updated[setIdx].charts[chartIdx].data
-    );
+    reader.readAsDataURL(file); // convert to Base64
+  };
+
+  const downloadAttachment = (file) => {
+    try {
+      const bytes = Uint8Array.from(atob(file.content), (c) => c.charCodeAt(0));
+      const blob = new Blob([bytes], { type: file.type || "application/octet-stream" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = file.name;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (err) {
+      console.error("Failed to download attachment", err);
+      alert("Failed to download attachment");
+    }
+  };
+
+  const addMasterSet = () => {
+    const updated = [
+      ...masterSets,
+      { name: "Student", collapsed: false, charts: [] },
+    ];
+    setMasterSets(updated);
+    setActiveSetIndex(updated.length - 1);
+    setActiveChartIndex(0);
+  };
+
+  const addChartToSet = (setIdx) => {
+    const updated = [...masterSets];
+    updated[setIdx].charts.push({
+      name: `Goal ${updated[setIdx].charts.length + 1}`,
+      startValue: 0,
+      startDate: "",
+      goalValue: 100,
+      goalDate: "",
+      data: [],
+      notes: "",
+      attachments: [], // important!
+    });
+    setMasterSets(updated);
+    setActiveSetIndex(setIdx);
+    setActiveChartIndex(updated[setIdx].charts.length - 1);
+  };
+
+  const toggleSetCollapse = (setIdx) => {
+    const updated = [...masterSets];
+    updated[setIdx].collapsed = !updated[setIdx].collapsed;
     setMasterSets(updated);
   };
+
+  const toggleChartCollapse = (setIdx, chartIdx) => {
+    const updated = [...masterSets];
+    updated[setIdx].charts[chartIdx].collapsed =
+      !updated[setIdx].charts[chartIdx].collapsed;
+    setMasterSets(updated);
+  };
+
+  const renameMasterSet = (setIdx) => {
+    const newName = prompt("Enter student's name:", masterSets[setIdx].name);
+    if (!newName) return;
+    const updated = [...masterSets];
+    updated[setIdx].name = newName;
+    setMasterSets(updated);
+  };
+
+  // Important: when listing filteredSets we compute the original master index and pass that
+  const deleteMasterSet = (masterIdx) => {
+    if (!window.confirm("Delete this set?")) return;
+    const updated = [...masterSets];
+    // allow deleting even if it's the only set
+    updated.splice(masterIdx, 1);
+    setMasterSets(updated);
+    // clamp active indices: ensure activeSetIndex is within new bounds
+    setActiveSetIndex((prev) => Math.min(prev, Math.max(0, updated.length - 1)));
+    setActiveChartIndex(0);
+  };
+
+  const renameChart = (setIdx, chartIdx) => {
+    const newName = prompt(
+      "Enter new goal:",
+      masterSets[setIdx].charts[chartIdx].name
+    );
+    if (!newName) return;
+    const updated = [...masterSets];
+    updated[setIdx].charts[chartIdx].name = newName;
+    setMasterSets(updated);
+  };
+
+  const deleteChart = (setIdx, chartIdx) => {
+    if (!window.confirm("Delete this goal?")) return;
+    const updated = [...masterSets];
+    updated[setIdx].charts.splice(chartIdx, 1);
+    setMasterSets(updated);
+    setActiveSetIndex(0);
+    setActiveChartIndex(0);
+  };
+
+  // ---- Import/Export ----
+  const exportJSON = () => {
+    const blob = new Blob([JSON.stringify(masterSets, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "progress-data.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
+  const importJSON = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const imported = JSON.parse(event.target.result);
+        if (Array.isArray(imported) && imported.every(s => s.name && Array.isArray(s.charts))) {
+          // sanitize imported data: ensure attachments array exists, clamp & sort data for each chart
+          const sanitized = imported.map((s) => ({
+            ...s,
+            charts: (s.charts || []).map((c) => ({
+              ...c,
+              attachments: Array.isArray(c.attachments) ? c.attachments : [],
+              data: sanitizeAndSortData(c.data),
+            })),
+          }));
+          setMasterSets(sanitized);
+          setActiveSetIndex(0);
+          setActiveChartIndex(0);
+        } else {
+          alert("Invalid JSON structure");
+        }
+      } catch {
+        alert("Invalid JSON");
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  // ---- Filtered sets (search) ----
+  const filteredSets = masterSets.filter((set) =>
+    set.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   // ---- Chart data & options ----
   const chartData = {
@@ -166,7 +319,7 @@ function App() {
         fill: false,
         pointRadius: 6,
         pointHoverRadius: 8,
-        pointHitRadius: 10,
+        pointHitRadius: 10, // larger hit area for clicks
       },
       activeChart?.startDate &&
         activeChart?.goalDate && {
@@ -189,36 +342,41 @@ function App() {
     plugins: {
       legend: { position: "top" },
       tooltip: { mode: "nearest", intersect: false },
-      zoom: {
-        zoom: {
-          wheel: { enabled: true },
-          pinch: { enabled: true },
-          mode: "xy",
-        },
-        pan: {
-          enabled: true,
-          mode: "xy",
-        },
-      },
     },
     scales: {
-      x: { type: "time", time: { unit: "day", tooltipFormat: "yyyy-MM-dd" }, title: { display: true, text: "Date" } },
-      y: { min: 0, max: 100, title: { display: true, text: "Accuracy" } },
+      x: {
+        type: "time",
+        time: { unit: "day", tooltipFormat: "yyyy-MM-dd" },
+        title: { display: true, text: "Date" },
+      },
+      y: {
+        min: 0,
+        max: 100,
+        title: { display: true, text: "Accuracy" },
+      },
     },
+
+    // IMPORTANT: Ctrl/Cmd + left click deletes a point
     onClick: (evt, elements) => {
-      const isMeta = evt?.native?.metaKey;
+      // elements is an array of active elements at click location
+      // evt.native is a PointerEvent in react-chartjs-2 v4
+      const isMeta = evt?.native?.metaKey; // cmd on mac
       const isCtrl = evt?.native?.ctrlKey;
       const shouldDelete = isCtrl || isMeta;
-      if (!elements || !elements.length) return;
-      const pointIndex = elements[0].index;
-      if (shouldDelete) {
+      if (!shouldDelete) return;
+
+      if (elements && elements.length && activeChart) {
+        const pointIndex = elements[0].index;
+        // confirm then delete
         const point = activeChart.data[pointIndex];
-        if (window.confirm(`Delete point ${point.x} — ${point.y}%${point.notes ? ` (${point.notes})` : ""}?`)) {
+        if (!point) return;
+        if (
+          window.confirm(
+            `Delete point ${point.x} — ${point.y}%${point.notes ? ` (${point.notes})` : ""}?`
+          )
+        ) {
           removePoint(activeSetIndex, activeChartIndex, pointIndex);
         }
-      } else {
-        // Edit point on click without modifier
-        editPoint(activeSetIndex, activeChartIndex, pointIndex);
       }
     },
   };
@@ -799,7 +957,5 @@ function App() {
     </div>
   );
 }
-
-
 
 export default App;
