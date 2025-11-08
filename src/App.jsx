@@ -35,18 +35,18 @@ function App() {
             name: "Student",
             collapsed: false,
             charts: [
-            {
-              name: "Goal 1",
-              collapsed: false,
-              startValue: 0,
-              startDate: "",
-              goalValue: 100,
-              goalDate: "",
-              data: [],
-              notes: "",
-              attachments: [], // <-- add this
-            },
-          ],
+              {
+                name: "Goal 1",
+                collapsed: false,
+                startValue: 0,
+                startDate: "",
+                goalValue: 100,
+                goalDate: "",
+                data: [],
+                notes: "",
+                attachments: [], // <-- add this
+              },
+            ],
           },
         ];
   });
@@ -86,16 +86,31 @@ function App() {
 
   // ---- Utilities ----
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+  const sanitizeAndSortData = (dataArr) =>
+    (Array.isArray(dataArr) ? dataArr : [])
+      .map((p) => ({ ...p, y: clamp(Number(p.y), 0, 100) }))
+      .sort((a, b) => new Date(a.x).getTime() - new Date(b.x).getTime());
 
   // ---- CRUD for sets / charts / points ----
   const addPoint = () => {
     if (!newValue || !newDate || !activeChart) return;
+    saveHistory();
     const updated = [...masterSets];
+
+    // clamp value to 0-100 and ensure number type
+    const clamped = clamp(Number(newValue), 0, 100);
+
     updated[activeSetIndex].charts[activeChartIndex].data.push({
       x: newDate,
-      y: Number(newValue),
+      y: clamped,
       notes: newNotes,
     });
+
+    // sort data by date (ascending) so chart lines and log are chronological
+    updated[activeSetIndex].charts[activeChartIndex].data = sanitizeAndSortData(
+      updated[activeSetIndex].charts[activeChartIndex].data
+    );
+
     setMasterSets(updated);
     setNewValue("");
     setNewDate(new Date().toISOString().split("T")[0]);
@@ -103,25 +118,30 @@ function App() {
   };
 
   const saveHistory = () => {
-  setHistory((prev) => {
-    const newHist = [...prev, JSON.stringify(masterSets)];
-    if (newHist.length > 20) newHist.shift(); // limit history to 20
-    return newHist;
-  });
+    setHistory((prev) => {
+      const newHist = [...prev, JSON.stringify(masterSets)];
+      if (newHist.length > 20) newHist.shift(); // limit history to 20
+      return newHist;
+    });
   };
 
   const undo = () => {
-  if (history.length === 0) return;
-  const prev = history[history.length - 1];
-  setHistory(history.slice(0, -1));
-  setMasterSets(JSON.parse(prev));
+    if (history.length === 0) return;
+    const prev = history[history.length - 1];
+    setHistory(history.slice(0, -1));
+    setMasterSets(JSON.parse(prev));
   };
 
-
-  const removePoint = (index) => {
+  // Updated removePoint signature: accept setIdx, chartIdx, index
+  const removePoint = (setIdx, chartIdx, index) => {
     saveHistory();
     const updated = [...masterSets];
-    updated[activeSetIndex].charts[activeChartIndex].data.splice(index, 1);
+    if (!updated[setIdx] || !updated[setIdx].charts[chartIdx]) return;
+    updated[setIdx].charts[chartIdx].data.splice(index, 1);
+    // ensure remaining data remains sanitized & sorted
+    updated[setIdx].charts[chartIdx].data = sanitizeAndSortData(
+      updated[setIdx].charts[chartIdx].data
+    );
     setMasterSets(updated);
   };
 
@@ -132,11 +152,15 @@ function App() {
     reader.onload = (e) => {
       const content = e.target.result.split(",")[1]; // remove data: prefix
       const updated = [...masterSets];
+      // ensure attachments array exists
+      if (!Array.isArray(updated[activeSetIndex].charts[activeChartIndex].attachments)) {
+        updated[activeSetIndex].charts[activeChartIndex].attachments = [];
+      }
       updated[activeSetIndex].charts[activeChartIndex].attachments.push({
         name: file.name,
         type: file.type,
         size: file.size,
-        content
+        content,
       });
       setMasterSets(updated);
     };
@@ -144,11 +168,18 @@ function App() {
   };
 
   const downloadAttachment = (file) => {
-    const blob = new Blob([Uint8Array.from(atob(file.content), c => c.charCodeAt(0))], { type: file.type });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = file.name;
-    a.click();
+    try {
+      const bytes = Uint8Array.from(atob(file.content), (c) => c.charCodeAt(0));
+      const blob = new Blob([bytes], { type: file.type || "application/octet-stream" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = file.name;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (err) {
+      console.error("Failed to download attachment", err);
+      alert("Failed to download attachment");
+    }
   };
 
   const addMasterSet = () => {
@@ -178,7 +209,6 @@ function App() {
     setActiveChartIndex(updated[setIdx].charts.length - 1);
   };
 
-
   const toggleSetCollapse = (setIdx) => {
     const updated = [...masterSets];
     updated[setIdx].collapsed = !updated[setIdx].collapsed;
@@ -207,8 +237,8 @@ function App() {
     // allow deleting even if it's the only set
     updated.splice(masterIdx, 1);
     setMasterSets(updated);
-    // clamp active indices
-    setActiveSetIndex((p) => clamp(0, 0, Math.max(0, updated.length - 1)));
+    // clamp active indices: ensure activeSetIndex is within new bounds
+    setActiveSetIndex((prev) => Math.min(prev, Math.max(0, updated.length - 1)));
     setActiveChartIndex(0);
   };
 
@@ -239,7 +269,9 @@ function App() {
     a.href = URL.createObjectURL(blob);
     a.download = "progress-data.json";
     a.click();
+    URL.revokeObjectURL(a.href);
   };
+
   const importJSON = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -248,7 +280,16 @@ function App() {
       try {
         const imported = JSON.parse(event.target.result);
         if (Array.isArray(imported) && imported.every(s => s.name && Array.isArray(s.charts))) {
-          setMasterSets(imported);
+          // sanitize imported data: ensure attachments array exists, clamp & sort data for each chart
+          const sanitized = imported.map((s) => ({
+            ...s,
+            charts: (s.charts || []).map((c) => ({
+              ...c,
+              attachments: Array.isArray(c.attachments) ? c.attachments : [],
+              data: sanitizeAndSortData(c.data),
+            })),
+          }));
+          setMasterSets(sanitized);
           setActiveSetIndex(0);
           setActiveChartIndex(0);
         } else {
@@ -376,29 +417,29 @@ function App() {
       setSidebarOpen(true);
     }
   };
-  const handleFileUpload = (goalId, event) => {
-  const file = event.target.files[0];
-  if (!file) return;
 
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    setGoals((prev) =>
-      prev.map((g) =>
-        g.id === goalId
-          ? {
-              ...g,
-              files: [
-                ...(g.files || []),
-                { name: file.name, url: e.target.result },
-              ],
-            }
-          : g
-      )
-    );
+  // Reworked file upload handler to add to activeChart attachments (previous version referenced setGoals which doesn't exist)
+  const handleFileUpload = (event) => {
+    const file = event.target.files?.[0];
+    if (!file || !activeChart) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target.result.split(",")[1];
+      const updated = [...masterSets];
+      if (!Array.isArray(updated[activeSetIndex].charts[activeChartIndex].attachments)) {
+        updated[activeSetIndex].charts[activeChartIndex].attachments = [];
+      }
+      updated[activeSetIndex].charts[activeChartIndex].attachments.push({
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        content,
+      });
+      setMasterSets(updated);
+    };
+    reader.readAsDataURL(file);
+    // reset input if present (caller should clear the <input> value)
   };
-  reader.readAsDataURL(file);
-};
-
 
   // ---- Styles/helpers ----
   const themeStyles =
@@ -620,55 +661,55 @@ function App() {
               }}
             >
               <label style={{ gridColumn: 1 }}>Baseline:</label>
-            <input
-              type="number"
-              value={activeChart.startValue}
-              onChange={(e) => {
-                const updated = [...masterSets];
-                updated[activeSetIndex].charts[activeChartIndex].startValue = Number(
-                  e.target.value
-                );
-                setMasterSets(updated);
-              }}
-              style={{ gridColumn: 2, width: "100%" }}
-            />
-            <input
-              type="date"
-              value={activeChart.startDate || ""}
-              onChange={(e) => {
-                const val = e.target.value;
-                const updated = [...masterSets];
-                updated[activeSetIndex].charts[activeChartIndex].startDate = val;
-                setMasterSets(updated);
-              }}
-              style={{ gridColumn: 3, width: "100%" }}
-            />
+              <input
+                type="number"
+                value={activeChart.startValue}
+                onChange={(e) => {
+                  const updated = [...masterSets];
+                  updated[activeSetIndex].charts[activeChartIndex].startValue = Number(
+                    e.target.value
+                  );
+                  setMasterSets(updated);
+                }}
+                style={{ gridColumn: 2, width: "100%" }}
+              />
+              <input
+                type="date"
+                value={activeChart.startDate || ""}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const updated = [...masterSets];
+                  updated[activeSetIndex].charts[activeChartIndex].startDate = val;
+                  setMasterSets(updated);
+                }}
+                style={{ gridColumn: 3, width: "100%" }}
+              />
 
-            {/* Goal / Goal Date */}
-            <label style={{ gridColumn: 1 }}>Goal:</label>
-            <input
-              type="number"
-              value={activeChart.goalValue}
-              onChange={(e) => {
-                const updated = [...masterSets];
-                updated[activeSetIndex].charts[activeChartIndex].goalValue = Number(
-                  e.target.value
-                );
-                setMasterSets(updated);
-              }}
-              style={{ gridColumn: 2, width: "100%" }}
-            />
-            <input
-              type="date"
-              value={activeChart.goalDate || ""}
-              onChange={(e) => {
-                const val = e.target.value;
-                const updated = [...masterSets];
-                updated[activeSetIndex].charts[activeChartIndex].goalDate = val;
-                setMasterSets(updated);
-              }}
-              style={{ gridColumn: 3, width: "100%" }}
-            />
+              {/* Goal / Goal Date */}
+              <label style={{ gridColumn: 1 }}>Goal:</label>
+              <input
+                type="number"
+                value={activeChart.goalValue}
+                onChange={(e) => {
+                  const updated = [...masterSets];
+                  updated[activeSetIndex].charts[activeChartIndex].goalValue = Number(
+                    e.target.value
+                  );
+                  setMasterSets(updated);
+                }}
+                style={{ gridColumn: 2, width: "100%" }}
+              />
+              <input
+                type="date"
+                value={activeChart.goalDate || ""}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const updated = [...masterSets];
+                  updated[activeSetIndex].charts[activeChartIndex].goalDate = val;
+                  setMasterSets(updated);
+                }}
+                style={{ gridColumn: 3, width: "100%" }}
+              />
               {/* Accuracy / Date / Notes */}
               <label style={{ gridColumn: 1 }}>Accuracy:</label>
               <input
@@ -822,95 +863,95 @@ function App() {
 
             {/* Log */}
             <div
-            style={{
-              background: theme === "dark" ? "#111" : "#ddd",
-              padding: 10,
-              borderRadius: 6,
-              marginBottom: 20,
-            }}
-          >
-            <strong>Log:</strong>
-            <ul style={{ margin: 6, paddingLeft: 18 }}>
-              {activeChart?.data.map((point, idx) => (
-                <li key={idx}>
-                  {point.x} - {point.y}%{point.notes ? ` (${point.notes})` : ""}
-                </li>
-              ))}
-            </ul>
-          </div>
-          {showAttachments && (
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: "rgba(0,0,0,0.5)",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              zIndex: 1000,
-            }}
-          >
-            <div style={{
-              background: theme === "dark" ? "#222" : "white",
-              color: theme === "dark" ? "white" : "#222",
-              padding: 20,
-              borderRadius: 6,
-              minWidth: 300
-            }}>
-              <h3>Attachments</h3>
-
-              {/* Upload */}
-              <input
-                type="file"
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (!file) return;
-
-                  const reader = new FileReader();
-                  reader.onload = (event) => {
-                    const content = event.target.result.split(",")[1]; // remove data: prefix
-                    const updated = [...masterSets];
-                    updated[activeSetIndex].charts[activeChartIndex].attachments.push({
-                      name: file.name,
-                      type: file.type,
-                      size: file.size,
-                      content,
-                    });
-                    setMasterSets(updated);
-                  };
-                  reader.readAsDataURL(file);
-                  e.target.value = "";
-                }}
-                style={{ marginBottom: 10 }}
-              />
-
-              {/* List */}
-              {activeChart.attachments.length === 0 && <p>No attachments</p>}
-              <ul>
-                {activeChart.attachments.map((file, idx) => (
+              style={{
+                background: theme === "dark" ? "#111" : "#ddd",
+                padding: 10,
+                borderRadius: 6,
+                marginBottom: 20,
+              }}
+            >
+              <strong>Log:</strong>
+              <ul style={{ margin: 6, paddingLeft: 18 }}>
+                {activeChart?.data.map((point, idx) => (
                   <li key={idx}>
-                    {file.name} ({Math.round(file.size / 1024)} KB)
-                    <button
-                      onClick={() => downloadAttachment(file)}
-                      style={{ marginLeft: 8 }}
-                    >
-                      Download
-                    </button>
+                    {point.x} - {point.y}%{point.notes ? ` (${point.notes})` : ""}
                   </li>
                 ))}
               </ul>
-
-              <button onClick={() => setShowAttachments(false)} style={{ marginTop: 10 }}>
-                Close
-              </button>
             </div>
-          </div>
-        )}
+            {showAttachments && (
+              <div
+                style={{
+                  position: "fixed",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: "rgba(0,0,0,0.5)",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  zIndex: 1000,
+                }}
+              >
+                <div style={{
+                  background: theme === "dark" ? "#222" : "white",
+                  color: theme === "dark" ? "white" : "#222",
+                  padding: 20,
+                  borderRadius: 6,
+                  minWidth: 300
+                }}>
+                  <h3>Attachments</h3>
 
-        </>
+                  {/* Upload */}
+                  <input
+                    type="file"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        const content = event.target.result.split(",")[1]; // remove data: prefix
+                        const updated = [...masterSets];
+                        updated[activeSetIndex].charts[activeChartIndex].attachments.push({
+                          name: file.name,
+                          type: file.type,
+                          size: file.size,
+                          content,
+                        });
+                        setMasterSets(updated);
+                      };
+                      reader.readAsDataURL(file);
+                      e.target.value = "";
+                    }}
+                    style={{ marginBottom: 10 }}
+                  />
+
+                  {/* List */}
+                  {activeChart.attachments.length === 0 && <p>No attachments</p>}
+                  <ul>
+                    {activeChart.attachments.map((file, idx) => (
+                      <li key={idx}>
+                        {file.name} ({Math.round(file.size / 1024)} KB)
+                        <button
+                          onClick={() => downloadAttachment(file)}
+                          style={{ marginLeft: 8 }}
+                        >
+                          Download
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <button onClick={() => setShowAttachments(false)} style={{ marginTop: 10 }}>
+                    Close
+                  </button>
+                </div>
+              </div>
+            )}
+
+          </>
         )}
       </div>
     </div>
