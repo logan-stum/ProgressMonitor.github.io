@@ -1,1 +1,0 @@
-if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/ProgressMonitor.github.io/sw.js', { scope: '/ProgressMonitor.github.io/' })})}
